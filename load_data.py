@@ -11,4 +11,4 @@ def create_dataset(path, num_ids):
         left_landmarks = np.load(os.path.join(path_id, 'left_landmarks.npy'))
         right_landmarks = np.load(os.path.join(path_id, 'right_landmarks.npy'))
 
-        eyes
+        with open(path_id, 'r') as f
