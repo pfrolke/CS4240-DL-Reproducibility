@@ -5,17 +5,19 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 from torchvision.io import read_image
 import torchvision.transforms.functional as fn
-import torchvision.transforms as transforms
 
 
 def crop_image(image, left_landmarks, right_landmarks):
     # Crop the image to the bounding box from the landmark of the left and right eye
     tlx, tly, brx, bry = left_landmarks
     cropped_left = fn.crop(image, tly, tlx, bry - tly, brx - tlx)
+    padded_left = fn.center_crop(cropped_left, (153, 95))
 
     tlx, tly, brx, bry = right_landmarks
     cropped_right = fn.crop(image, tly, tlx, bry - tly, brx - tlx)
-    return cropped_left, cropped_right
+    padded_right = fn.center_crop(cropped_right, (153, 95))
+
+    return padded_left, padded_right
 
 
 def process_image(image):
@@ -48,8 +50,8 @@ def create_dataset_from_mix(path):
         processed_right = process_image(cropped_right)
 
         # Append the processed image and label to their respective dataset
-        data_set_left.append({'img': processed_left, 'label': labels[i]})
-        data_set_right.append({'img': processed_right, 'label': labels[i]})
+        data_set_left.append((processed_left, labels[i]))
+        data_set_right.append((processed_right, labels[i]))
 
     return data_set_left, data_set_right
 
@@ -64,6 +66,3 @@ class ColumbiaGaze(Dataset):
 
     def __getitem__(self, idx):
         return self.eyes[idx]
-
-
-print(len(ColumbiaGaze('data/mix')))

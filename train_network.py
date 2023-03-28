@@ -1,22 +1,25 @@
-import datetime
+from datetime import datetime
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import load_data
-import gaze_estimator
+from tqdm import tqdm
+from load_data import ColumbiaGaze
+from gaze_estimator import SupervisedGazeEstimator
 
-data_set = load_data.create_dataset_from_mix("")
+data_set = ColumbiaGaze('data/mix')
 generator = torch.Generator().manual_seed(42)
 train_test = torch.utils.data.random_split(
     data_set, [0.5, 0.5], generator=generator)
 
+batch_size = 10
+
 # Create data loaders for our datasets; shuffle for training, not for validation
 training_loader = torch.utils.data.DataLoader(
-    train_test[0], batch_size=10, shuffle=True)
+    train_test[0], batch_size=batch_size, shuffle=True)
 test_loader = torch.utils.data.DataLoader(
-    train_test[1], batch_size=10, shuffle=True)
+    train_test[1], batch_size=batch_size, shuffle=True)
 
-model = gaze_estimator.SupervisedGazeEstimator()
+model = SupervisedGazeEstimator()
 
 # loss function and optimizer
 loss_fn = nn.L1Loss()  # binary cross entropy
@@ -25,12 +28,12 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 def train_one_epoch(epoch_index):
     running_loss = 0.
-    last_loss = 0.
+    num_batches = 0
 
     # Here, we use enumerate(training_loader) instead of
     # iter(training_loader) so that we can track the batch
     # index and do some intra-epoch reporting
-    for i, data in enumerate(training_loader):
+    for i, data in tqdm(enumerate(training_loader)):
         # Every data instance is an input + label pair
         inputs, labels = data
 
@@ -49,8 +52,10 @@ def train_one_epoch(epoch_index):
 
         # Gather data and report
         running_loss += loss.item()
-        if i % 1000 == 999:
-            last_loss = running_loss / 1000  # loss per batch
+        num_batches += 1
+
+        if i % batch_size == batch_size - 1:
+            last_loss = running_loss / batch_size  # loss per batch
             print('  batch {} loss: {}'.format(i + 1, last_loss))
             tb_x = epoch_index * len(training_loader) + i + 1
             print('Loss/train', last_loss, tb_x)
@@ -63,12 +68,12 @@ def main():
     # Initializing in a separate cell so we can easily add more epochs to the same run
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-    EPOCHS = 5
+    EPOCHS = 20
 
     best_test_loss = 1_000_000.
 
     for epoch in range(EPOCHS):
-        print('EPOCH {}:'.format(epoch + 1))
+        print('\nEPOCH {}:'.format(epoch + 1))
 
         # Make sure gradient tracking is on, and do a pass over the data
         model.train(True)
@@ -85,7 +90,7 @@ def main():
             running_test_loss += test_loss
 
         avg_test_loss = running_test_loss / (i + 1)
-        print('LOSS train {} valid {}'.format(avg_loss, avg_test_loss))
+        print(f'LOSS train {avg_loss} valid {avg_test_loss}')
 
         # Log the running loss averaged per batch
         # for both training and validation
@@ -96,7 +101,7 @@ def main():
         # Track best performance, and save the model's state
         if avg_test_loss < best_test_loss:
             best_test_loss = avg_test_loss
-            model_path = 'model_{}_{}'.format(timestamp, epoch)
+            model_path = 'models/model_{}_{}'.format(timestamp, epoch)
             torch.save(model.state_dict(), model_path)
 
         epoch += 1
