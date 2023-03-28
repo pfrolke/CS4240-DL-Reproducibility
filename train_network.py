@@ -54,8 +54,8 @@ def train_one_epoch(epoch_index):
         running_loss += loss.item()
         num_batches += 1
 
-        if i % batch_size == batch_size - 1:
-            last_loss = running_loss / batch_size  # loss per batch
+        if i % 100 == 99:
+            last_loss = running_loss / 100  # loss per batch
             print('  batch {} loss: {}'.format(i + 1, last_loss))
             tb_x = epoch_index * len(training_loader) + i + 1
             print('Loss/train', last_loss, tb_x)
