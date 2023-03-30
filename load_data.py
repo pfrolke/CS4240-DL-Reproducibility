@@ -55,7 +55,6 @@ def create_dataset_from_mix(path):
 
     return data_set_left, data_set_right
 
-
 class ColumbiaGaze(Dataset):
     def __init__(self, path):
         data_set_left, data_set_right = create_dataset_from_mix(path)
@@ -66,3 +65,40 @@ class ColumbiaGaze(Dataset):
 
     def __getitem__(self, idx):
         return self.eyes[idx]
+    
+def create_eye_pair_dataset(path):
+    data_set = []
+
+    num_ids = len(os.listdir(path)) - 2 # 2 directories are eye_landmark and mix
+
+    # For each participant crop and process the images and append that list to the dataset
+    for i in range(1, num_ids+1):
+        participant_path = os.path.join(path, str(i))
+
+        participant_eyes = []
+
+        labels = np.load(os.path.join(participant_path, 'labels.npy'))
+        left_landmarks = np.load(os.path.join(participant_path, 'left_landmark_mix.npy'))
+        right_landmarks = np.load(os.path.join(participant_path, 'right_landmark_mix.npy'))        
+
+        num_imgs = len(os.listdir(participant_path))
+        for j in range(num_imgs):
+            img_path = os.path.join(path, f'{j}.png')
+            img = read_image(img_path)
+
+            # Crop the image
+            cropped_left, cropped_right = crop_image(
+                img, left_landmarks[j], right_landmarks[j])
+
+            # Process the image
+            processed_left = process_image(cropped_left)
+            processed_right = process_image(cropped_right)
+
+            participant_eyes.append((processed_left, labels[j]))
+            participant_eyes.append((processed_right, labels[j]))
+        
+        data_set.append(participant_eyes)
+
+    return data_set
+
+
