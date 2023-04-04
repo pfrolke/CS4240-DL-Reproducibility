@@ -6,7 +6,7 @@ from tqdm import tqdm
 from load_data import ColumbiaGaze
 from gaze_estimator import SupervisedGazeEstimator
 
-data_set = ColumbiaGaze('data/mix')
+data_set = ColumbiaGaze('data')
 generator = torch.Generator().manual_seed(42)
 train_test = torch.utils.data.random_split(
     data_set, [0.5, 0.5], generator=generator)
