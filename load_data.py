@@ -1,3 +1,4 @@
+from matplotlib import patches
 import numpy as np
 import os
 import torch
@@ -11,10 +12,12 @@ import matplotlib.pyplot as plt
 def crop_image(image, left_landmarks, right_landmarks, max_size, max_x_y):
     # Crop the image to the bounding box from the landmark of the left and right eye
     tlx, tly, brx, bry = left_landmarks
+    tlx = 448 - tlx
+    brx = 448 - brx
     if abs(brx - tlx) * abs(bry - tly) < max_size:
-        tlx = int(tlx - (max_x_y[0] - abs(brx - tlx)))
+        tlx = int(tlx + (max_x_y[0] - abs(brx - tlx)))
         tly = int(tly - (max_x_y[1] - abs(bry - tly)))
-        brx = int(brx + (max_x_y[0] - abs(brx - tlx)))
+        brx = int(brx - (max_x_y[0] - abs(brx - tlx)))
         bry = int(bry + (max_x_y[1] - abs(bry - tly)))
 
         if abs(brx - tlx) * abs(bry - tly) != max_size:
@@ -24,11 +27,27 @@ def crop_image(image, left_landmarks, right_landmarks, max_size, max_x_y):
             print(max_size)
             raise Exception("The cropped image is not the same size as the max size")
 
-    cropped_left = fn.crop(image, tly, tlx, bry - tly, brx - tlx)
+    cropped_left = fn.crop(image, tly, brx, abs(bry - tly), abs(brx - tlx))
     # padded_left = fn.center_crop(cropped_left, (153, 95))
 
     tlx, tly, brx, bry = right_landmarks
-    cropped_right = fn.crop(image, tly, tlx, bry - tly, brx - tlx)
+
+    tlx = 448 - tlx
+    brx = 448 - brx
+    if abs(brx - tlx) * abs(bry - tly) < max_size:
+        tlx = int(tlx + (max_x_y[0] - abs(brx - tlx)))
+        tly = int(tly - (max_x_y[1] - abs(bry - tly)))
+        brx = int(brx - (max_x_y[0] - abs(brx - tlx)))
+        bry = int(bry + (max_x_y[1] - abs(bry - tly)))
+
+        if abs(brx - tlx) * abs(bry - tly) != max_size:
+            print([abs(brx - tlx), abs(bry - tly)])
+            print(abs(brx - tlx) * abs(bry - tly))
+            print(max_x_y)
+            print(max_size)
+            raise Exception("The cropped image is not the same size as the max size")
+        
+    cropped_right = fn.crop(image, tly, brx, abs(bry - tly), abs(brx - tlx))
     # padded_right = fn.center_crop(cropped_right, (153, 95))
 
     return cropped_left, cropped_right
@@ -73,7 +92,7 @@ def create_dataset_from_mix(path):
 
     # load images from path
     print("Loading & preprocessing dataset 🚀")
-    for i in tqdm(range(labels.shape[0])):
+    for i in tqdm(range(5)):
         img_path = os.path.join(path, f'{i}.png')
         img = read_image(img_path)
 
@@ -118,7 +137,7 @@ def create_eye_pair_dataset(path):
 
     # For each participant crop and process the images and append that list to the dataset
     print("Loading & preprocessing dataset 🚀")
-    for i in tqdm(range(1, num_ids+1)):
+    for i in tqdm(range(1, 19+1)):
         participant_path = os.path.join(path, str(i))
 
         participant_eyes_left = []
@@ -153,18 +172,63 @@ def create_eye_pair_dataset(path):
 
     return data_set
 
-data_set = create_eye_pair_dataset('data')
-fig, axs = plt.subplots(nrows=10, ncols=2, squeeze=False)
-for i in range(10):
-    img1 = data_set[i][0][0][0]
-    img2 = data_set[i][1][0][0]
 
-    axs[i, 0].imshow(img1.permute(1, 2, 0))
-    axs[i, 0].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
-    axs[i, 1].imshow(img2.permute(1, 2, 0))
-    axs[i, 1].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
+def show_eye_pair_dataset():
+    data_set = create_eye_pair_dataset('data')
+    fig, axs = plt.subplots(nrows=10, ncols=2, squeeze=False)
+    for i in range(10):
+        img1 = data_set[i][0][0][0]
+        img2 = data_set[i][1][0][0]
 
-plt.show()
+        axs[i, 0].imshow(img1.permute(1, 2, 0))
+        axs[i, 0].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
+        axs[i, 1].imshow(img2.permute(1, 2, 0))
+        axs[i, 1].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
+
+    plt.show()
+
+def show_gaze_pair_dataset():
+    data_set = create_dataset_from_mix('data')[0]
+    print(data_set[0])
+    fig, axs = plt.subplots(nrows=10, ncols=1, squeeze=False)
+    for i in range(0, 10, 2):
+        img1 = data_set[i][0]
+
+        axs[i, 0].imshow(img1.permute(1, 2, 0))
+        axs[i, 0].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
+
+    plt.show()
+
+def show_one_image():
+    left_landmarks = np.load('data/5/left_landmarks.npy')
+    right_landmarks = np.load('data/5/right_landmarks.npy')
+
+    fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False)
+    for i in range(1):
+        img = read_image(f'data/5/{i+95}.png')
+
+        tlx, tly, brx, bry = left_landmarks[i+95]
+        tlx = 448 - tlx
+        brx = 448 - brx
+
+        # Display the image
+        axs[i,0].imshow(img.permute(1, 2, 0))
+
+        # Create a Rectangle patch
+        rect = patches.Rectangle((brx, tly), abs(brx - tlx), abs(bry - tly), linewidth=1, edgecolor='r', facecolor='none')
+        axs[i,0].add_patch(rect)
+
+
+        tlx, tly, brx, bry = right_landmarks[i+95]
+        tlx = 448 - tlx
+        brx = 448 - brx
+        rect = patches.Rectangle((brx, tly), abs(brx - tlx), abs(bry - tly), linewidth=1, edgecolor='r', facecolor='none')
+
+# Add the patch to the Axes
+        axs[i,0].add_patch(rect)
+    plt.show()
+
+show_eye_pair_dataset()
 
 
 # gaze similar
