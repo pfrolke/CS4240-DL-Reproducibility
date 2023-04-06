@@ -92,7 +92,7 @@ def create_dataset_from_mix(path):
 
     # load images from path
     print("Loading & preprocessing dataset 🚀")
-    for i in tqdm(range(5)):
+    for i in tqdm(range(labels.shape[0])):
         img_path = os.path.join(path, f'{i}.png')
         img = read_image(img_path)
 
@@ -137,7 +137,7 @@ def create_eye_pair_dataset(path):
 
     # For each participant crop and process the images and append that list to the dataset
     print("Loading & preprocessing dataset 🚀")
-    for i in tqdm(range(1, 19+1)):
+    for i in tqdm(range(1, num_ids+1)):
         participant_path = os.path.join(path, str(i))
 
         participant_eyes_left = []
