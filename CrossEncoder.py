@@ -3,9 +3,7 @@ import torch
 import torch.nn as nn
 from torchvision.models import resnet18, ResNet18_Weights, densenet121, DenseNet121_Weights
 from torchvision.io import read_image
-import torchvision.transforms.functional as fn
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from densenet_decoder import DenseNetDecoder
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -27,5 +25,8 @@ class CrossEncoder(nn.Module):
         self.gaze_and_eye_to_decoder = nn.Linear(z_dim, )
 
         # decoder
-        self.decoder = densenet121(
-            weights=DenseNet121_Weights.DEFAULT).eval()  # todo ???
+        self.decoder = self.decoder = DenseNetDecoder(
+            self.decoder_input_c,
+            activation_fn=nn.LeakyReLU,
+            normalization_fn=nn.InstanceNorm2d,
+        )
