@@ -2,7 +2,7 @@ import torch.nn as nn
 from torchvision.models import resnet18, ResNet18_Weights
 
 
-class SupervisedGazeEstimator(nn.Module):
+class GazeEstimatorSupervised(nn.Module):
     def __init__(self):
         super().__init__()
         self.transforms = ResNet18_Weights.DEFAULT.transforms()

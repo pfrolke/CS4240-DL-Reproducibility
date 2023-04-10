@@ -1,11 +1,6 @@
-import numpy as np
-import torch
 import torch.nn as nn
-from torchvision.models import resnet18, ResNet18_Weights, densenet121, DenseNet121_Weights
-from torchvision.io import read_image
-from densenet_decoder import DenseNetDecoder
-
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+from torchvision.models import resnet18, ResNet18_Weights
+from model.densenet_decoder import DenseNetDecoder
 
 
 class CrossEncoder(nn.Module):

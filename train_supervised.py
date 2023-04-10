@@ -4,12 +4,12 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 from load_data import ColumbiaGaze
-from gaze_estimator import SupervisedGazeEstimator
+from model.gaze_estimator_supervised import GazeEstimatorSupervised
 
-data_set = ColumbiaGaze('data')
+eye_pairs = ColumbiaGaze('data')
 generator = torch.Generator().manual_seed(42)
 train_test = torch.utils.data.random_split(
-    data_set, [0.5, 0.5], generator=generator)
+    eye_pairs, [0.5, 0.5], generator=generator)
 
 batch_size = 10
 
@@ -19,7 +19,7 @@ training_loader = torch.utils.data.DataLoader(
 test_loader = torch.utils.data.DataLoader(
     train_test[1], batch_size=batch_size, shuffle=True)
 
-model = SupervisedGazeEstimator()
+model = GazeEstimatorSupervised()
 
 # loss function and optimizer
 loss_fn = nn.L1Loss()  # binary cross entropy
