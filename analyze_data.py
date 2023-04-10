@@ -2,7 +2,7 @@ from matplotlib import patches
 import numpy as np
 from torchvision.io import read_image
 import matplotlib.pyplot as plt
-from load_data import create_pair_dataset
+from load_data import create_pair_dataset, process_image
 
 
 def show_eye_pair_dataset():

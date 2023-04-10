@@ -26,7 +26,7 @@ def crop_image(image, landmarks, width, height):
     assert abs(bry - tly) == height
 
     # horizontally flip landmarks since they were generated that way
-    return fn.crop(image, tly, 448 - brx, abs(bry - tly), abs(brx - tlx))
+    return fn.crop(image, tly, 448 - brx, height, width)
 
 
 def process_image(image):
@@ -35,16 +35,28 @@ def process_image(image):
     return equalized
 
 
-def find_max_landmark(left_landmarks, right_landmarks):
+def find_max_landmark(path):
     '''Find maximum landmark width and height'''
-    landmarks = np.concatenate((left_landmarks, right_landmarks), axis=0)
+    num_participants = len(os.listdir(path)) - 2
 
     max_width = -1
     max_height = -1
 
-    for tlx, tly, brx, bry in landmarks:
-        max_width = max(abs(brx - tlx), max_width)
-        max_height = max(abs(bry - tly), max_height)
+    for i in range(1, num_participants):
+        participant_path = os.path.join(path, str(i))
+
+        # load labels and landmarks
+        left_landmarks = np.load(os.path.join(
+            participant_path, 'left_landmarks.npy'))
+        right_landmarks = np.load(os.path.join(
+            participant_path, 'right_landmarks.npy'))
+
+        all_landmarks = np.concatenate(
+            (left_landmarks, right_landmarks), axis=0)
+
+        for tlx, tly, brx, bry in all_landmarks:
+            max_width = max(abs(brx - tlx), max_width)
+            max_height = max(abs(bry - tly), max_height)
 
     return max_width, max_height
 
@@ -73,7 +85,9 @@ def create_pair_dataset(path):
 
     # For each participant crop and process the images and append that list to the dataset
     print("Loading & preprocessing dataset 🚀")
-    for i in tqdm(range(1, num_participants + 1)):
+    max_width, max_height = find_max_landmark(path)
+
+    for i in tqdm(range(1, num_participants)):
         participant_path = os.path.join(path, str(i))
 
         participant_eyes_left = []
@@ -86,9 +100,7 @@ def create_pair_dataset(path):
         right_landmarks = np.load(os.path.join(
             participant_path, 'right_landmarks.npy'))
 
-        max_width, max_height = find_max_landmark(
-            left_landmarks, right_landmarks)
-
+        # loop over all images per subject
         for j in range(labels.shape[0]):
             img = read_image(os.path.join(participant_path, f'{j}.png'))
 
@@ -148,12 +160,12 @@ class ColumbiaPairs(Dataset):
 
             with open(store_path, 'rb') as f:
                 self.data = torch.load(f)
-
             return
 
         gaze_pairs, eye_pairs = create_pair_dataset(path)
 
-        self.data = list(zip(gaze_pairs, eye_pairs))
+        self.data = [gaze_pair + eye_pair
+                     for gaze_pair, eye_pair in zip(gaze_pairs, eye_pairs)]
 
         with open(store_path, 'wb') as f:
             torch.save(self.data, f)
