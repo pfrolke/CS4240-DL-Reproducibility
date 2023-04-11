@@ -1,8 +1,8 @@
-from matplotlib import patches
 import numpy as np
 import os
 import torch
 from torch.utils.data import Dataset
+import random
 from tqdm import tqdm
 from torchvision.io import read_image
 import torchvision.transforms.functional as fn
@@ -87,7 +87,7 @@ def create_pair_dataset(path):
     print("Loading & preprocessing dataset 🚀")
     max_width, max_height = find_max_landmark(path)
 
-    for i in tqdm(range(1, num_participants)):
+    for i in tqdm(range(1, num_participants - 50)):
         participant_path = os.path.join(path, str(i))
 
         participant_eyes_left = []
@@ -114,13 +114,17 @@ def create_pair_dataset(path):
             processed_left = process_image(cropped_left)
             processed_right = process_image(cropped_right)
 
+            eye_left = (processed_left, torch.Tensor(labels[j]))
+            eye_right = (processed_right, torch.Tensor(labels[j]))
+
             # eye identities
-            participant_eyes_left.append((processed_left, labels[j]))
-            participant_eyes_right.append((processed_right, labels[j]))
+            participant_eyes_left.append(eye_left)
+            participant_eyes_right.append(eye_right)
 
             # gaze identities
-            gaze_pairs.append([(processed_left, labels[i]),
-                               (processed_right, labels[i])])
+            gaze_pair = [eye_left, eye_right]
+            random.shuffle(gaze_pair)
+            gaze_pairs.append(gaze_pair)
 
         # each participant has 105 images so for each participant needs to have 52 left and 53 pairs or the other way around
         # the i % 2 makes sure that when i is even a extra left pair is added and when i is odd and extra right pair is added

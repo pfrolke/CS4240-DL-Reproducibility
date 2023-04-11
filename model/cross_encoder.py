@@ -31,8 +31,6 @@ class CrossEncoder(nn.Module):
     def forward(self, data):
         # x: batch_size * [(img1, label), (img2, label), (img3, label), (img4, label)]
 
-        print(data)
-
         x = self.encoder(x)
         x = self.encoder_to_gaze_and_eye(x)
         x = self.gaze_and_eye_to_decoder(x)
