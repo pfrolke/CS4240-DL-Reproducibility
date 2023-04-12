@@ -37,15 +37,17 @@ def train_one_epoch(epoch_index):
     num_batches = 0
 
     # EPOCH
-    for i, data in tqdm(enumerate(training_loader)):
+    for i, (data, labels) in tqdm(enumerate(training_loader)):
         # Zero gradients
         optimizer.zero_grad()
+
+        data.to(device)
 
         # Make predictions for this batch
         outputs = model(data)
 
         # Compute the loss and its gradients
-        loss = loss_fn(data, outputs.detach())
+        loss = loss_fn(data.detach(), outputs.detach())
         loss.backward()
 
         # Adjust learning weights

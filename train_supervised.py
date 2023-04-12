@@ -29,6 +29,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 def train_one_epoch(epoch_index):
     running_loss = 0.
     num_batches = 0
+    last_loss = -1
 
     # Here, we use enumerate(training_loader) instead of
     # iter(training_loader) so that we can track the batch

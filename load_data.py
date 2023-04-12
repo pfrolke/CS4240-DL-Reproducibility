@@ -79,6 +79,7 @@ def create_random_pair(eyes, add_extra_pair):
 def create_pair_dataset(path):
     eye_pairs = []
     gaze_pairs = []
+    all_labels = []
 
     # 2 directories are eye_landmark and mix
     num_participants = len(os.listdir(path)) - 2
@@ -100,6 +101,8 @@ def create_pair_dataset(path):
         right_landmarks = np.load(os.path.join(
             participant_path, 'right_landmarks.npy'))
 
+        all_labels.extend(labels)
+
         # loop over all images per subject
         for j in range(labels.shape[0]):
             img = read_image(os.path.join(participant_path, f'{j}.png'))
@@ -114,15 +117,12 @@ def create_pair_dataset(path):
             processed_left = process_image(cropped_left)
             processed_right = process_image(cropped_right)
 
-            eye_left = (processed_left, torch.Tensor(labels[j]))
-            eye_right = (processed_right, torch.Tensor(labels[j]))
-
             # eye identities
-            participant_eyes_left.append(eye_left)
-            participant_eyes_right.append(eye_right)
+            participant_eyes_left.append(processed_left)
+            participant_eyes_right.append(processed_right)
 
             # gaze identities
-            gaze_pair = [eye_left, eye_right]
+            gaze_pair = [processed_left, processed_right]
             random.shuffle(gaze_pair)
             gaze_pairs.append(gaze_pair)
 
@@ -136,16 +136,19 @@ def create_pair_dataset(path):
 
     assert len(gaze_pairs) == len(eye_pairs)
 
-    return gaze_pairs, eye_pairs
+    return gaze_pairs, eye_pairs, all_labels
 
 
 class ColumbiaGaze(Dataset):
     '''Dataset of (eye, gaze_label) entries for training a supervised model'''
 
     def __init__(self, path):
-        gaze_pairs, _ = create_pair_dataset(path)
-        self.eyes = [left for left, _ in gaze_pairs] + \
-            [right for _, right in gaze_pairs]
+        gaze_pairs, _, labels = create_pair_dataset(path)
+        self.eyes = []
+
+        for (eye1, eye2), label in zip(gaze_pairs, labels):
+            self.eyes.append((eye1, label))
+            self.eyes.append((eye2, label))
 
     def __len__(self):
         return len(self.eyes)
@@ -155,27 +158,33 @@ class ColumbiaGaze(Dataset):
 
 
 class ColumbiaPairs(Dataset):
-    '''Dataset of [(eye1, label), (eye2, label), (eye3, label), (eye4, label)] entries,
-    (eye1, eye2) form a gaze-similar pair, (eye3, eye4) form an eye-similar pair'''
+    '''Dataset of [eye1, eye2, eye3, eye4] entries,
+    (eye1, eye2) form a gaze-similar pair, (eye3, eye4) form an eye-similar pair
+    __getitem__ also returns the gaze labels for eye1 and eye2'''
 
     def __init__(self, path, store_path='columbia_preprocessed.npy'):
         if os.path.isfile(store_path):
             print('loading preprocessed data')
 
             with open(store_path, 'rb') as f:
-                self.data = torch.load(f)
+                loaded = torch.load(f)
+
+            self.data = loaded['data']
+            self.labels = loaded['labels']
             return
 
-        gaze_pairs, eye_pairs = create_pair_dataset(path)
+        gaze_pairs, eye_pairs, labels = create_pair_dataset(path)
 
-        self.data = [gaze_pair + eye_pair
-                     for gaze_pair, eye_pair in zip(gaze_pairs, eye_pairs)]
+        # concatenate pairs and convert to tensor
+        self.data = torch.stack([torch.cat((torch.stack(gaze_pair), torch.stack(eye_pair)))
+                                 for gaze_pair, eye_pair in zip(gaze_pairs, eye_pairs)])
+        self.labels = labels
 
         with open(store_path, 'wb') as f:
-            torch.save(self.data, f)
+            torch.save({'data': self.data, 'labels': labels}, f)
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        return self.data[idx]
+        return self.data[idx], self.labels[idx]
