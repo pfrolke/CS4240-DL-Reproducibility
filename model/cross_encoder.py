@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import numpy as np
 from torchvision.models import resnet18, ResNet18_Weights
 from model.densenet_decoder import DenseNetDecoder
 
@@ -9,6 +10,11 @@ class CrossEncoder(nn.Module):
         super().__init__()
         self.gaze_dim = gaze_dim
         self.eye_dim = eye_dim
+        self.decoder_input_c = decoder_input_c
+
+        bottleneck_shape = (2, 4)
+        self.bottleneck_shape = bottleneck_shape
+        enc_num_all = np.prod(bottleneck_shape) * self.decoder_input_c
 
         # encoder
         self.encoder = resnet18(weights=ResNet18_Weights.DEFAULT).eval()
@@ -21,7 +27,7 @@ class CrossEncoder(nn.Module):
 
         # feed into decoder
         self.gaze_and_eye_to_decoder = nn.Linear(
-            self.gaze_and_eye_dim, decoder_input_c)
+            self.gaze_and_eye_dim, enc_num_all)
 
         # decoder
         self.decoder = DenseNetDecoder(
@@ -34,14 +40,16 @@ class CrossEncoder(nn.Module):
         # data shape: (batch_size, n_img, img_colors, img_height, img_width)
         # n_img = 4: gaze_pair + eye_pair
 
-        batch_size, n_img, img_colors, img_height, img_width = data.shape
+        batch_size, n_img, img_height, img_width = data.shape
 
         assert n_img == 4
 
         # stack all images
         # x[0] = data[0][0]
         # x[4] = data[1][0]
-        x = data.view(batch_size * n_img, img_colors, img_height, img_width)
+        x = data.view(batch_size * n_img, 1, img_height, img_width)
+
+        x = x.expand(batch_size * n_img, 3, img_height, img_width)
 
         # encoder
         x = self.encoder(x.float())
@@ -63,13 +71,23 @@ class CrossEncoder(nn.Module):
         x_eye_swapped[:, 3, :] = x_eye[:, 2, :]
 
         # recombine swapped tensors
-        x = torch.cat((x_gaze_swapped, x_eye_swapped), dim=2)
+        x = torch.cat((x_gaze_swapped, x_eye_swapped), dim=2) 
+        # x.shape = (16, 4, 47) = (batch_size, num_img, gaze_dim+eye_dim)
 
         # return to stacked view
-        x = x.view(batch_size * n_img, 1, self.gaze_and_eye_dim)
+        x = x.view(batch_size * n_img, self.gaze_and_eye_dim)
+        # x.shape = (64, 47) = (batch_size*num_img, 1, gaze_dim+eye_dim)
 
         # decoder
-        x = self.gaze_and_eye_to_decoder(x)
+        x = self.gaze_and_eye_to_decoder(x) 
+        # x.shape = (64, 16) = (batch_size*num_img, dec_in)
+
+        x = x.view(batch_size*n_img, self.decoder_input_c, *self.bottleneck_shape) 
+        # x.shape = (64, 16, 2, 4) = (batch_size*num_img, dec_in, (bottleneck))
+
         x = self.decoder(x)
+        # x.shape = (64, 1, 32, 64)
+
+        x = x.view(batch_size, n_img, 32, 64)
 
         return x

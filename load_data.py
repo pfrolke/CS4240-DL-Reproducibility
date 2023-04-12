@@ -6,7 +6,10 @@ import random
 from tqdm import tqdm
 from torchvision.io import read_image
 import torchvision.transforms.functional as fn
+import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
+from PIL import Image
+
 
 
 def crop_image(image, landmarks, width, height):
@@ -32,7 +35,10 @@ def crop_image(image, landmarks, width, height):
 def process_image(image):
     '''Histogram equalization and grayscaling on the tensor image'''
     equalized = fn.equalize(image.contiguous())
-    return equalized
+    grey = fn.rgb_to_grayscale(equalized)
+    resized = transforms.Resize((32,64))(grey)
+    return torch.squeeze(resized)
+
 
 
 def find_max_landmark(path):
@@ -163,15 +169,15 @@ class ColumbiaPairs(Dataset):
     __getitem__ also returns the gaze labels for eye1 and eye2'''
 
     def __init__(self, path, store_path='columbia_preprocessed.npy'):
-        if os.path.isfile(store_path):
-            print('loading preprocessed data')
+        # if os.path.isfile(store_path):
+        #     print('loading preprocessed data')
 
-            with open(store_path, 'rb') as f:
-                loaded = torch.load(f)
+        #     with open(store_path, 'rb') as f:
+        #         loaded = torch.load(f)
 
-            self.data = loaded['data']
-            self.labels = loaded['labels']
-            return
+        #     self.data = loaded['data']
+        #     self.labels = loaded['labels']
+        #     return
 
         gaze_pairs, eye_pairs, labels = create_pair_dataset(path)
 

@@ -46,6 +46,9 @@ def train_one_epoch(epoch_index):
         # Make predictions for this batch
         outputs = model(data)
 
+        #data.shape = (16, 4, 3, 95, 153)
+        #outputs.shape = (64, 1, 32, 64)
+
         # Compute the loss and its gradients
         loss = loss_fn(data.detach(), outputs.detach())
         loss.backward()
