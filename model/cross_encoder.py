@@ -21,12 +21,12 @@ class CrossEncoder(nn.Module):
 
         # shared + specific feature layer
         # channels
-        self.gaze_and_eye_dim = gaze_dim + eye_dim
-        self.encoder_to_gaze_and_eye = nn.Linear(
+        self.gaze_and_eye_dim = 3 * gaze_dim + eye_dim
+        self.encoder_to_gaze_and_eye = self.linear(
             self.encoder.fc.out_features, self.gaze_and_eye_dim)
 
         # feed into decoder
-        self.gaze_and_eye_to_decoder = nn.Linear(
+        self.gaze_and_eye_to_decoder = self.linear(
             self.gaze_and_eye_dim, enc_num_all)
 
         # decoder
@@ -35,6 +35,12 @@ class CrossEncoder(nn.Module):
             activation_fn=nn.LeakyReLU,
             normalization_fn=nn.InstanceNorm2d,
         )
+
+    def linear(self, f_in, f_out):
+        fc = nn.Linear(f_in, f_out)
+        nn.init.kaiming_normal_(fc.weight.data)
+        nn.init.constant_(fc.bias.data, val=0)
+        return fc
 
     def forward(self, data):
         # data shape: (batch_size, n_img, img_colors, img_height, img_width)
