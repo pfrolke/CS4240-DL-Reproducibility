@@ -26,18 +26,20 @@ def loss_fn(eye_pairs, outputs):
 
     loss_gaze_pair = loss_eye3 + loss_eye4 + gamma * residual_loss_gaze_pair
 
-    return loss_eye_pair + beta * loss_gaze_pair
+    final_loss = loss_eye_pair + beta * loss_gaze_pair
+
+    return torch.tensor(final_loss.data, requires_grad=True)
 
 
 def l1_loss(eye_pairs, outputs, index):
     l1_loss_fn = nn.L1Loss(reduction='mean')
     loss_per_instance = [l1_loss_fn(eyes[index], output[index])
                          for eyes, output in zip(eye_pairs, outputs)]
-    return torch.sum(loss_per_instance)
+    return torch.stack(loss_per_instance).sum(dim=0)
 
 
 def residual_loss(eye_pairs, outputs, index1, index2):
     l1_loss_fn = nn.L1Loss(reduction='mean')
     res_loss_per_instance = [l1_loss_fn(
         eyes[index1] - output[index1], eyes[index2] - output[index2]) for eyes, output in zip(eye_pairs, outputs)]
-    return torch.sum(res_loss_per_instance)
+    return torch.stack(res_loss_per_instance).sum(dim=0)

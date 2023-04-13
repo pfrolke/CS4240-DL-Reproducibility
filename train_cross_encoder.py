@@ -1,4 +1,5 @@
 from datetime import datetime
+from loss import loss_fn
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -28,7 +29,7 @@ test_loader = torch.utils.data.DataLoader(
 model = CrossEncoder().to(device)
 
 # loss function and optimizer
-loss_fn = nn.L1Loss().to(device)  # binary cross entropy
+# loss_fn = nn.L1Loss().to(device)  # binary cross entropy
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
 
