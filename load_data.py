@@ -37,7 +37,7 @@ def process_image(image):
     equalized = fn.equalize(image.contiguous())
     grey = fn.rgb_to_grayscale(equalized)
     resized = transforms.Resize((32,64))(grey)
-    return torch.squeeze(resized)
+    return resized
 
 
 

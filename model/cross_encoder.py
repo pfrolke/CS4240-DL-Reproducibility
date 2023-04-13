@@ -46,7 +46,7 @@ class CrossEncoder(nn.Module):
         # data shape: (batch_size, n_img, img_colors, img_height, img_width)
         # n_img = 4: gaze_pair + eye_pair
 
-        batch_size, n_img, img_height, img_width = data.shape
+        batch_size, n_img, img_colors, img_height, img_width = data.shape
 
         assert n_img == 4
 
@@ -94,6 +94,6 @@ class CrossEncoder(nn.Module):
         x = self.decoder(x)
         # x.shape = (64, 1, 32, 64)
 
-        x = x.view(batch_size, n_img, 32, 64)
+        x = x.view(batch_size, n_img, 1, 32, 64)
 
         return x
