@@ -21,7 +21,7 @@ class CrossEncoder(nn.Module):
 
         # shared + specific feature layer
         # channels
-        self.gaze_and_eye_dim = 3 * gaze_dim + eye_dim
+        self.gaze_and_eye_dim = gaze_dim + eye_dim
         self.encoder_to_gaze_and_eye = self.linear(
             self.encoder.fc.out_features, self.gaze_and_eye_dim)
 
@@ -36,13 +36,19 @@ class CrossEncoder(nn.Module):
             normalization_fn=nn.InstanceNorm2d,
         )
 
+        # estimator
+        self.estimator = nn.Sequential(
+            self.linear(self.gaze_dim, self.gaze_dim),
+            self.linear(self.gaze_dim, 2)
+        )
+
     def linear(self, f_in, f_out):
         fc = nn.Linear(f_in, f_out)
         nn.init.kaiming_normal_(fc.weight.data)
         nn.init.constant_(fc.bias.data, val=0)
         return fc
 
-    def forward(self, data):
+    def forward(self, data, estimator=False):
         # data shape: (batch_size, n_img, img_colors, img_height, img_width)
         # n_img = 4: gaze_pair + eye_pair
 
@@ -66,6 +72,10 @@ class CrossEncoder(nn.Module):
         x_gaze = x[:, :, :self.gaze_dim]
         x_eye = x[:, :, self.gaze_dim:]
 
+        if estimator:
+            x = self.estimator(x_gaze)
+            return x
+
         # swap gaze for indices 0 and 1
         x_gaze_swapped = torch.clone(x_gaze)
         x_gaze_swapped[:, 0, :] = x_gaze[:, 1, :]
@@ -77,7 +87,7 @@ class CrossEncoder(nn.Module):
         x_eye_swapped[:, 3, :] = x_eye[:, 2, :]
 
         # recombine swapped tensors
-        x = torch.cat((x_gaze_swapped, x_eye_swapped), dim=2) 
+        x = torch.cat((x_gaze_swapped, x_eye_swapped), dim=2)
         # x.shape = (16, 4, 47) = (batch_size, num_img, gaze_dim+eye_dim)
 
         # return to stacked view
@@ -85,10 +95,11 @@ class CrossEncoder(nn.Module):
         # x.shape = (64, 47) = (batch_size*num_img, 1, gaze_dim+eye_dim)
 
         # decoder
-        x = self.gaze_and_eye_to_decoder(x) 
+        x = self.gaze_and_eye_to_decoder(x)
         # x.shape = (64, 16) = (batch_size*num_img, dec_in)
 
-        x = x.view(batch_size*n_img, self.decoder_input_c, *self.bottleneck_shape) 
+        x = x.view(batch_size*n_img, self.decoder_input_c,
+                   *self.bottleneck_shape)
         # x.shape = (64, 16, 2, 4) = (batch_size*num_img, dec_in, (bottleneck))
 
         x = self.decoder(x)

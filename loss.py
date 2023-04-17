@@ -28,13 +28,13 @@ def loss_fn(eye_pairs, outputs):
 
     final_loss = loss_eye_pair + beta * loss_gaze_pair
 
-    return torch.tensor(final_loss.data, requires_grad=True)
+    return final_loss.data.clone().detach().requires_grad_(True)
 
 
 def l1_loss(eye_pairs, outputs, index):
     l1_loss_fn = nn.L1Loss(reduction='mean')
-    loss_per_instance = [l1_loss_fn(eyes[index], output[index])
-                         for eyes, output in zip(eye_pairs, outputs)]
+    loss_per_instance = l1_loss_fn(
+        eye_pairs[:, :, index], outputs[:, :, index])
     return torch.stack(loss_per_instance).sum(dim=0)
 
 
