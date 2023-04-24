@@ -8,6 +8,9 @@ from torchvision.io import read_image
 import torchvision.transforms.functional as fn
 import torchvision.transforms as transforms
 
+NUM_SUBJECTS = 56
+NUM_SUBJECT_IMAGES = 105
+
 
 def crop_image(image, landmarks, width, height):
     '''Crop the image centered on the bounding box from the landmark with the width and height given'''
@@ -39,12 +42,10 @@ def process_image(image):
 
 def find_max_landmark(path):
     '''Find maximum landmark width and height'''
-    num_participants = len(os.listdir(path)) - 2
-
     max_width = -1
     max_height = -1
 
-    for i in range(1, num_participants):
+    for i in range(1, NUM_SUBJECTS + 1):
         participant_path = os.path.join(path, str(i))
 
         # load labels and landmarks
@@ -119,19 +120,19 @@ def create_pair_dataset(path):
             processed_left = process_image(cropped_left)
             processed_right = process_image(cropped_right)
 
-            # eye identities
+            # eye similar pair
             participant_eyes_left.append(processed_left)
             participant_eyes_right.append(processed_right)
 
-            # gaze identities
+            # gaze similar pair
             gaze_pair = [processed_left, processed_right]
             random.shuffle(gaze_pair)
             gaze_pairs.append(gaze_pair)
 
         # each participant has 105 images so for each participant needs to have 52 left and 53 pairs or the other way around
         # the i % 2 makes sure that when i is even a extra left pair is added and when i is odd and extra right pair is added
-        random_left = create_random_pair(participant_eyes_left, i % 2 == 0)
-        random_right = create_random_pair(participant_eyes_right, i % 2 == 1)
+        random_left = create_random_pair(participant_eyes_left, i % 2)
+        random_right = create_random_pair(participant_eyes_right, i % 2)
 
         eye_pairs += random_left
         eye_pairs += random_right
@@ -164,29 +165,33 @@ class ColumbiaPairs(Dataset):
     (eye1, eye2) form a gaze-similar pair, (eye3, eye4) form an eye-similar pair
     __getitem__ also returns the gaze labels for eye1 and eye2'''
 
-    def __init__(self, path, store_path='columbia_preprocessed.npy'):
+    def __init__(self, data_path, subjects, store_path='columbia_preprocessed.pt'):
         if os.path.isfile(store_path):
             print('loading preprocessed data')
 
             with open(store_path, 'rb') as f:
                 loaded = torch.load(f)
 
-            self.data = loaded['data']
+            data = loaded['data']
             self.labels = loaded['labels']
-            return
+        else:
+            gaze_pairs, eye_pairs, self.labels = create_pair_dataset(data_path)
 
-        gaze_pairs, eye_pairs, labels = create_pair_dataset(path)
+            # concatenate pairs and convert to tensor
+            data = torch.stack([torch.cat((torch.stack(gaze_pair), torch.stack(eye_pair)))
+                                for gaze_pair, eye_pair in zip(gaze_pairs, eye_pairs)])
 
-        # concatenate pairs and convert to tensor
-        self.data = torch.stack([torch.cat((torch.stack(gaze_pair), torch.stack(eye_pair)))
-                                 for gaze_pair, eye_pair in zip(gaze_pairs, eye_pairs)])
-        self.labels = labels
+            with open(store_path, 'wb') as f:
+                torch.save({'data': data, 'labels': self.labels}, f)
 
-        with open(store_path, 'wb') as f:
-            torch.save({'data': self.data, 'labels': labels}, f)
+        # select only images for specified subject
+        select_indices = torch.flatten(torch.tensor([
+            range(NUM_SUBJECT_IMAGES * i, NUM_SUBJECT_IMAGES * (i + 1)) for i in subjects]))
+        self.selected_data = torch.index_select(
+            data, dim=0, index=select_indices)
 
     def __len__(self):
-        return len(self.data)
+        return len(self.selected_data)
 
     def __getitem__(self, idx):
-        return self.data[idx], self.labels[idx]
+        return self.selected_data[idx], self.labels[idx]

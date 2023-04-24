@@ -1,10 +1,4 @@
-from datetime import datetime
-import torch
 import torch.nn as nn
-import torch.optim as optim
-from tqdm import tqdm
-from load_data import ColumbiaPairs
-from model.cross_encoder import CrossEncoder
 
 
 def loss_fn(eye_pairs, outputs):
