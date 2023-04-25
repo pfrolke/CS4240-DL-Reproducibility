@@ -39,6 +39,7 @@ class CrossEncoder(nn.Module):
         # estimator
         self.estimator = nn.Sequential(
             self.linear(self.gaze_dim, self.gaze_dim),
+            nn.Tanh(),
             self.linear(self.gaze_dim, 2)
         )
 

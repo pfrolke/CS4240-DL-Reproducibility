@@ -2,7 +2,7 @@
 data
 models
 __pycache__
-columbia_preprocessed.npy
+columbia_preprocessed.pt
 *.code-workspace
 .vscode/
 test_suite.ipynb
