@@ -51,13 +51,11 @@ The Cross-Encoder is trained using two types of image pairs. An eye similar pair
 The paper provides Figure 1 to give an overview of the architecture.
 
 <center>
-<img src="architecture.png" style="width:70%" />
+<img src="[architecture.png](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/architecture.png?raw=true)" style="width:70%" />
 </center>
 <p align="center">
   <em>Figure 1: the achitecture of the Cross Encoder as presented in the paper. Here e<sub>J</sub> is the eye feature and g<sub>J</sub> the gaze feature.</em>
 </p>
-<!-- ![The Cross-Encoder Architecture](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/architecture.png?raw=true) -->
-
 
 ### Loss Function
 For one image pair the loss is determined by the following function.
@@ -75,7 +73,10 @@ $$
 L_g + \beta L_e
 \end{aligned}
 $$
-where $L_g$ and $L_e$ are the loss for the gaze and eye pair balances by the hyper parameter $\beta$.
+where $L_g$ and $L_e$ are the loss for the gaze and eye pair balanced by the hyper parameter $\beta$.
+
+### Gaze estimator
+To perform the actual gaze estimation task, the Cross Encoders' encoder component is extracted and extended with two additional linear layers. This network is then trained once more and this time in a supervised manner.
 
 ## The Dataset
 The Columbia Gaze dataset consists of 5880 images of 56 subjects. It includes 105 images per subject, where each image has different gaze directions and head poses. Additionally, a label for the gaze and landmarks indicating the coordinates of both the left and right eye is available for each image. The label is a 2D vector, specifying the pitch and the yaw.
@@ -86,13 +87,8 @@ The Columbia Gaze dataset consists of 5880 images of 56 subjects. It includes 10
 To process the data we followed all the steps described in the paper. First, the images are histogram equalized and grey-scaled. Both actions are to eliminate changes in appearance due to variations in the light direction, intensity and color. Then, we used the landmarks to extract the left and the right eye for each image. However, after inspecting the results we noticed something was wrong. To find the issue we plotted the rectangle landmarks on the images and identified a flip in the x-axis of the images. Incorporation of this knowledge, resulted in accurately cropped images. Finally, it was required to have the same width and height for each eye to be able to feed it into the Cross Encoder. To achieve this, we determined the maximum width and height among all the eyes and changed the croppings of each eye accordingly. We ensured that the original cropping was centered relative to the new cropping.
 
 ### Dataset creation
-
-
-### Approach
-
-- Eerst supervised
-- Toen cross encoder
-- Toen trainen
+After processing the data we created two datasets. One for training the Cross Encoder and one to train the gaze estimator. In the Cross Encoder dataset, one sample contains one eye pair and one gaze pair which boils down to a tuple of length four. For each of the participants in the dataset we created 105 gaze and eye pairs. To form the gaze pairs, we took the left and right eye of the same image, just like the authors did. The eye pairs were constructed by randomly combining two left or two right eyes from different images but from the same person.
+The gaze estimator dataset comprises all of the eyes along with their corresponding labels.
 
 ### Training procedure
 
