@@ -51,7 +51,7 @@ The Cross-Encoder is trained using two types of image pairs. An eye similar pair
 The paper provides Figure 1 to give an overview of the architecture.
 
 <center>
-<img src="[architecture.png](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/architecture.png?raw=true)" style="width:70%" />
+<img src="https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/architecture.png?raw=true" style="width:70%" />
 </center>
 <p align="center">
   <em>Figure 1: the achitecture of the Cross Encoder as presented in the paper. Here e<sub>J</sub> is the eye feature and g<sub>J</sub> the gaze feature.</em>
@@ -118,7 +118,9 @@ if error < best:
 It appears as if the model is only saved for the lowest test error. Because of this code we believe that the authors effectively used the test set as a validation set during training. This is bad practice, as it results in an incorrect view of the model's generalization performance. When we evaluated our model in the same way, it achieved an angular error of $7.9\pm3.8$ on the test set. This is considerably better than the original $9.3\pm4.2$, but still far from the reported $6.4\pm0.1$. 
 
 ### Cross-Encoder evaluation
-<img src="https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/planning-2.jpg/model_output.png?raw=true" width=200>
+<center>
+<img src="https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/model_output.jpg?raw=true" width=200>
+</center>
 
 The figure above shows a sample of input images from the test set (left) together with their respective output images when reconstructed by the Cross-Encoder (right). The quality of the output images is an indicator that the encoder-decoder training is successfully mapping an input image to a latent space without losing information about the gaze. Therefore, it likely is not the cause of the performance drop.
 
@@ -140,14 +142,12 @@ One other explanation why our results are not the same is that we did not perfor
 ## Project approach + division of work
 
 At the beginning we made a project plan for the entire course of the project. We decided that we would try to pair program as much as possible during the project since it was hard to divide the task of programming. The planning can be found in the image below.
-
-![Project plan](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/planning-2.jpg?raw=true)
+<center>
+  <img src="https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/planning-2.jpg?raw=true" style="width:70%" />
+</center>
 
 We ended up having weekly meetings with our supervisor Lingyu. During these meetings we discussed our progress and asked for help when things were unclear. Unfortunately, we ended up meeting Alex, our TA, only once. This was mostly due to miscommunication, as well as that our group contact with Lingyu went through Teams. Alex was in this Teams channel but never replied.
 
 During the project we found out that it was possible to separate the programming tasks a bit more. Gijs mainly worked on implementing the loading and processing the data as well as helping to debug the cross encoder and loss implementations.
 
 When we began writing the report we made a division on who would write which parts of the project. Everyone wrote some sections individually and we then later proofread each others sections to make sure there were no mistakes and that it was a coherent blog.
-
-* Planning die we de eerste week hadden gemaakt?
-* Ik zag in een van de voorbeelden een tabel met taken en wie er aan hadden gewerkt. Dat kunnen we ook doen.
