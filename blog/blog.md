@@ -77,16 +77,27 @@ After the cross-encoder is trained the gaze estimator will be trained for 30 epo
 
 ## Discussion / Challenges / problems
 
-Some of the challenges we encountered were for one that the available code was, in our opinion, convoluted at badly annotated. This made it hard for us to interpret and reproduce the paper, especially since we are not familiar with 
+One significant challenge was that the available code was, in our opinion, convoluted and badly annotated. This made it hard for us to interpret and reproduce the paper, especially since we are not familiar with how Deep Learning or more specifically Gaze estimation projects are structured.
 
+When looking through the original code we found that the output of the encoder was not the combined size of the gaze and eye feature vector. They multiply the gaze feature by three, which thus results in an unfair representation of gaze feature. In the paper they do not mention this and it is not clear from the code why this is done. Thus for our own implementation we decided not to multiply the gaze dimension by three. This might result our worse performance or explain why their results were so good.
+
+One other explanation why our results are not the same is that we did not perform a 5-fold cross validation. The Columbia dataset is a relatively small dataset, thus using cross-validation one could better utilize the short comings of using a small dataset.
 
 
 ## Conclusion
 
+
 ## Project approach + division of work
-At the beginning we made a project plan for the entire course of the project. We decided that we would try to pair program as much as possible during the project since it was hard to divide the task of programming. The 
+
+At the beginning we made a project plan for the entire course of the project. We decided that we would try to pair program as much as possible during the project since it was hard to divide the task of programming. The planning can be found in the image below.
+
 ![Project plan](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/planning-2.jpg?raw=true)
 
-- Planning die we de eerste week hadden gemaakt?
-- Ik zag in een van de voorbeelden een tabel met taken en wie er aan hadden gewerkt. Dat kunnen we ook doen. 
+We ended up having weekly meetings with our supervisor Lingyu. During these meetings we discussed our progress and asked for help when things were unclear. Unfortunately, we ended up meeting Alex, our TA, only once. This was mostly due to miscommunication, as well as that our group contact with Lingyu went through Teams. Alex was in this Teams channel but never replied.
 
+During the project we ended up separating the programming tasks a bit more. Gijs mainly worked on implementing the loading and processing the data as well as helping to debug the cross encoder and loss implementations.
+
+When we began writing the report we made a division on who would write which parts of the project. 
+
+* Planning die we de eerste week hadden gemaakt?
+* Ik zag in een van de voorbeelden een tabel met taken en wie er aan hadden gewerkt. Dat kunnen we ook doen.
