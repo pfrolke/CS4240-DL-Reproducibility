@@ -44,8 +44,20 @@ Accurate gaze estimation can enable more natural and intuitive interfaces for hu
 In this work, we attempt to reproduce the results of the paper "Cross-Encoder for Unsupervised Gaze Representation Learning" by Yunjia Sun, et al. The paper introduces an auto-encoder-like framework, called a Cross-Encoder, for unsupervised gaze representation learning. The authors highlight that learning a good representation for gaze is non-trivial due to the fact that features of gaze direction features are always intertwined with features of the eye's physical appearance. With that in mind, the authors designed a framework that learns to disentangle the gaze and eye features. In the paper, the performance of the Cross-Encoder is evaluated using experiments on various public datasets and with various values for the hyperparameters $d_g$ and $d_e$ representing the the dimension of the gaze and eye and the feature respectively. Our tasks was to reproduce one specific number: the angular error on the Columbia Gaze dataset with $d_g=15$ and $d_e=32$ which is listed in Table 1 of the paper.
 
 ## Cross Encoder Architecture
-The Cross-Encoder is a modification of a conventional auto-encoder, a feedforward network that tries to reproduce its input at the output layer. To incorporate the goal of separating the gaze and eye features, Cross Encoder processes paired images together. The Cross-Encoder then encodes each image into two features, known as the shared feature and the specific feature. Both images are reconstructed according to their respective features, 
-<!-- Todo -->
+The Cross-Encoder is a modification of an auto-encoder. A conventional autoencoder is a feedforward network that tries to reproduce its input at the output layer. It consists of an encoder which encodes the input to a vector-like embedding and a decoder which tries to reconstruct the image based on the embedding. To incorporate the goal of separating the gaze and eye features, Cross Encoder splits the embedding into two parts, the so called shared feature and specific feature. Furtermore, the input consists of pairs of images instead of just one image. After being encoded to a specific and shared feature, the two images are reconstructed according to its specific feature and the other's shared feature.
+
+The Cross-Eencoder is trained using two types of image pairs. An eye similar pair is a pair that has the same eye but a different gaze. A gaze similar pair, is a pair of images with the same gaze but with different eyes. When the eye similar pair is fed into the network, the shared feature will be the eye feature and the specific feature will be the gaze feature. So these images will be reconstructed based on its gaze feature and the other's eye feature. For the gaze similar pair this is the other way around.
+The paper provides Figure 1 to give an overview of the architecture.
+
+<!-- ![The Cross-Encoder Architecture](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/architecture.png?raw=true) -->
+![The Cross-Encoder Architecture](architecture.png)
+<p align="center">
+  <em>Figure 1: the achitecture of the Cross Encoder as presented in the paper. Here e<sub>J</sub> is the eye feature and g<sub>J</sub> the gaze feature.</em>
+</p>
+
+The parameters of the encoder and decoder are updated using two types of input pairs simultaneously. To apply the updates, the following loss function is used
+<img align="center" src="loss.png"</>
+
 
 ## The Dataset
 The Columbia Gaze dataset consists of 5880 images of 56 subjects. It includes 105 images per subject, where each image has different gaze directions and head poses. Additionally, a label for the gaze and landmarks indicating the coordinates of both the left and right eye is available for each image. The label is a 2D vector, specifying the pitch and the yaw.
@@ -56,6 +68,7 @@ The Columbia Gaze dataset consists of 5880 images of 56 subjects. It includes 10
 To process the data we followed all the steps described in the paper. First, the images are histogram equalized and grey-scaled. Both actions are to eliminate changes in appearance due to variations in the light direction, intensity and colour. Then, we used the landmarks to extract the left and the right eye for each image. However, after inspecting the results we noticed something was wrong. To find the issue we plotted the rectangle landmarks on the images and identified a flip in the x-axis of the images. Incorporation of this knowledge, resulted in accurately cropped images. Finally, it was required to have the same width and height for each eye to be able to feed it into the Cross Encoder. To achieve this, we determined the maximum width and height among all the eyes and changed the croppings of each eye accordingly. We ensured that the original cropping was centered relative to the new cropping.
 
 ### Dataset creation
+
 
 ### Approach
 
