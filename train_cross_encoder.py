@@ -18,9 +18,9 @@ BATCH_SIZE = 16
 EPOCHS = 200
 LEARNING_RATE = 1e-4
 TRAIN_TEST_SPLIT = [0.8, 0.2]
-ESTIMATOR_EPOCHS = 30
-ESTIMATOR_BATCH_SIZE = 4
-ESTIMATOR_LEARNING_RATE = 1e-2
+ESTIMATOR_EPOCHS = 90
+ESTIMATOR_BATCH_SIZE = 8
+ESTIMATOR_LEARNING_RATE = 1e-3
 
 # split data
 generator = torch.Generator().manual_seed(42)
@@ -33,7 +33,7 @@ test_set = ColumbiaPairs('data', test_subjects)
 training_loader = DataLoader(
     train_set, batch_size=BATCH_SIZE, shuffle=True)
 test_loader = DataLoader(
-    test_set, batch_size=BATCH_SIZE, shuffle=True)
+    test_set, batch_size=BATCH_SIZE, shuffle=False)
 
 # extract 100 shots for estimator training
 estimator_data = list(islice(train_set, 100))
@@ -106,7 +106,7 @@ def train_one_epoch(data_loader, estimator=False):
         # Gather data and report
         running_loss += loss.item()
 
-    return running_loss / float(len(data_loader.dataset))
+    return running_loss / len(data_loader.dataset)
 
 
 if __name__ == "__main__":
