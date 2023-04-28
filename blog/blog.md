@@ -67,7 +67,7 @@ To process the data we followed all the steps described in the paper. First, the
 
 The cross-encoder is trained on an $80/20$ training/test split on the Columbia dataset. In the original paper they used a 5-fold cross-validation on the Columbia dataset but due to time constraints we only do one cross-validation. Training is done for 200 epochs with a learning rate of 0.0001 using the Adam optimizer with default hyperparameters, the same as the original paper. The batch size is set to 16 where half of the batch are eye pairs and the other half are gaze pairs. To reproduce the angular error of $6.4\pm0.1$ we set the gaze vector dimension to 15 and the eye vector dimension to 32, again the same as the original paper. We use the Google Cloud environment with a NVIDIA Tesla T4 GPU to train our model.
 
-After the cross-encoder is trained, the gaze estimator will be trained. The training will run for 30 epochs with a learning rate of 0.01 on 100 shots using the Adam optimizer with default hyperparameters. Thi
+After the cross-encoder is trained, the gaze estimator will be trained. The training will run for 90 epochs with a learning rate of 0.01 on 100 shots using the Adam optimizer with default hyperparameters. Thi
 
 * Welke hyper parameters
 * Train test split
@@ -96,8 +96,8 @@ It appears as if the model is only saved for the lowest test error. Because of t
 
 The figure above shows a sample of input images from the test set (left) together with their respective output images when reconstructed by the Cross-Encoder (right). The quality of the output images is an indicator that the encoder-decoder training is successfully mapping an input image to a latent space without losing information about the gaze. Therefore, it likely is not the cause of the performance drop.
 
-- miss voorbeeld van slechte prediction
-- plaatje van decoder output
+* miss voorbeeld van slechte prediction
+* plaatje van decoder output
 
 ## Discussion / Challenges / problems
 
@@ -119,9 +119,9 @@ At the beginning we made a project plan for the entire course of the project. We
 
 We ended up having weekly meetings with our supervisor Lingyu. During these meetings we discussed our progress and asked for help when things were unclear. Unfortunately, we ended up meeting Alex, our TA, only once. This was mostly due to miscommunication, as well as that our group contact with Lingyu went through Teams. Alex was in this Teams channel but never replied.
 
-During the project we ended up separating the programming tasks a bit more. Gijs mainly worked on implementing the loading and processing the data as well as helping to debug the cross encoder and loss implementations.
+During the project we found out that it was possible to separate the programming tasks a bit more. Gijs mainly worked on implementing the loading and processing the data as well as helping to debug the cross encoder and loss implementations.
 
-When we began writing the report we made a division on who would write which parts of the project. 
+When we began writing the report we made a division on who would write which parts of the project. Everyone wrote some sections individually and we then later proofread each others sections to make sure there were no mistakes and that it was a coherent blog.
 
 * Planning die we de eerste week hadden gemaakt?
 * Ik zag in een van de voorbeelden een tabel met taken en wie er aan hadden gewerkt. Dat kunnen we ook doen.
