@@ -46,18 +46,36 @@ In this work, we attempt to reproduce the results of the paper "Cross-Encoder fo
 ## Cross Encoder Architecture
 The Cross-Encoder is a modification of an auto-encoder. A conventional autoencoder is a feedforward network that tries to reproduce its input at the output layer. It consists of an encoder which encodes the input to a vector-like embedding and a decoder which tries to reconstruct the image based on the embedding. To incorporate the goal of separating the gaze and eye features, Cross Encoder splits the embedding into two parts, the so called shared feature and specific feature. Furtermore, the input consists of pairs of images instead of just one image. After being encoded to a specific and shared feature, the two images are reconstructed according to its specific feature and the other's shared feature.
 
-The Cross-Eencoder is trained using two types of image pairs. An eye similar pair is a pair that has the same eye but a different gaze. A gaze similar pair, is a pair of images with the same gaze but with different eyes. When the eye similar pair is fed into the network, the shared feature will be the eye feature and the specific feature will be the gaze feature. So these images will be reconstructed based on its gaze feature and the other's eye feature. For the gaze similar pair this is the other way around.
+### Input
+The Cross-Eencoder is trained using two types of image pairs. An eye similar pair is a pair that has the same eye but a different gaze. A gaze similar pair, is a pair of images with the same gaze but with different eyes. When the eye similar pair is fed into the network, the shared feature will be the eye feature and the specific feature will be the gaze feature. So these images will be reconstructed based on its gaze feature and the other's eye feature. For the gaze similar pair this is the other way around. 
 The paper provides Figure 1 to give an overview of the architecture.
 
-<!-- ![The Cross-Encoder Architecture](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/architecture.png?raw=true) -->
-![The Cross-Encoder Architecture](architecture.png)
+<center>
+<img src="architecture.png" style="width:70%" />
+</center>
 <p align="center">
   <em>Figure 1: the achitecture of the Cross Encoder as presented in the paper. Here e<sub>J</sub> is the eye feature and g<sub>J</sub> the gaze feature.</em>
 </p>
+<!-- ![The Cross-Encoder Architecture](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/architecture.png?raw=true) -->
 
-The parameters of the encoder and decoder are updated using two types of input pairs simultaneously. To apply the updates, the following loss function is used
-<img align="center" src="loss.png"</>
 
+### Loss Function
+For one image pair the loss is determined by the following function.
+
+$$
+\begin{aligned}
+L=\sum||I_i-\hat{I_i}||_1 + ||I_j -\hat{I_j}||_1 + \alpha R
+\end{aligned}
+$$
+
+where $(I_i, I_j)$ and $(\hat{I_i}, \hat{I_j})$ denote the training images, and the reconstructions respectively. The first two terms are there to compare the reconstructions with the inpu and the $R = ||(\hat{I_i} - \hat{I_i}) - (\hat{I_j} - \hat{I_j})||_1$ is there to regulize the differences between the losses of the two training images. The parameters of the encoder and decoder are updated using two types of input pairs simultaneously. Therefore the full loss becomes
+
+$$
+\begin{aligned}
+L_g + \beta L_e
+\end{aligned}
+$$
+where $L_g$ and $L_e$ are the loss for the gaze and eye pair balances by the hyper parameter $\beta$.
 
 ## The Dataset
 The Columbia Gaze dataset consists of 5880 images of 56 subjects. It includes 105 images per subject, where each image has different gaze directions and head poses. Additionally, a label for the gaze and landmarks indicating the coordinates of both the left and right eye is available for each image. The label is a 2D vector, specifying the pitch and the yaw.
