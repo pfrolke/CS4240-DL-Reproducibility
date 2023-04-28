@@ -150,6 +150,6 @@ At the beginning we made a project plan for the entire course of the project. We
 
 We ended up having weekly meetings with our supervisor Lingyu. During these meetings we discussed our progress and asked for help when things were unclear. Unfortunately, we ended up meeting Alex, our TA, only once. This was mostly due to miscommunication, as well as that our group contact with Lingyu went through Teams. Alex was in this Teams channel but never replied.
 
-During the project we found out that it was possible to separate the programming tasks a bit more. Gijs mainly worked on implementing the loading and processing the data as well as helping to debug the cross encoder and loss implementations.
+During the project we found out that it was possible to separate the programming tasks a bit more. Gijs mainly worked on implementing the loading and processing the data as well as helping to debug the cross encoder and loss implementations. Isa mostly worked on the initial set up for the decoder and the loss implementation. Paul did the setup with google cloud, and did most work to get the Cross Encoder fully working.
 
 When we began writing the report we made a division on who would write which parts of the project. Everyone wrote some sections individually and we then later proofread each others sections to make sure there were no mistakes and that it was a coherent blog.
