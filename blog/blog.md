@@ -56,7 +56,7 @@ The paper provides Figure 1 to give an overview of the architecture.
 <p align="center">
   <em>Figure 1: the achitecture of the Cross Encoder as presented in the paper. Here e<sub>J</sub> is the eye feature and g<sub>J</sub> the gaze feature.</em>
 </p>
-<!-- ![The Cross-Encoder Architecture](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/architecture.png?raw=true) -->
+<!-- ![The Cross-Encoder Architecture](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/architecture.png?raw=true) -->
 
 
 ### Loss Function
@@ -122,7 +122,7 @@ if error < best:
 It appears as if the model is only saved for the lowest test error. Because of this code we believe that the authors effectively used the test set as a validation set during training. This is bad practice, as it results in an incorrect view of the model's generalization performance. When we evaluated our model in the same way, it achieved an angular error of $7.9\pm3.8$ on the test set. This is considerably better than the original $9.3\pm4.2$, but still far from the reported $6.4\pm0.1$. 
 
 ### Cross-Encoder evaluation
-<img src="https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/imgs/planning-2.jpg/model_output.png?raw=true" width=200>
+<img src="https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/planning-2.jpg/model_output.png?raw=true" width=200>
 
 The figure above shows a sample of input images from the test set (left) together with their respective output images when reconstructed by the Cross-Encoder (right). The quality of the output images is an indicator that the encoder-decoder training is successfully mapping an input image to a latent space without losing information about the gaze. Therefore, it likely is not the cause of the performance drop.
 
@@ -142,7 +142,7 @@ One other explanation why our results are not the same is that we did not perfor
 
 At the beginning we made a project plan for the entire course of the project. We decided that we would try to pair program as much as possible during the project since it was hard to divide the task of programming. The planning can be found in the image below.
 
-![Project plan](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/planning-2.jpg?raw=true)
+![Project plan](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/planning-2.jpg?raw=true)
 
 We ended up having weekly meetings with our supervisor Lingyu. During these meetings we discussed our progress and asked for help when things were unclear. Unfortunately, we ended up meeting Alex, our TA, only once. This was mostly due to miscommunication, as well as that our group contact with Lingyu went through Teams. Alex was in this Teams channel but never replied.
 
