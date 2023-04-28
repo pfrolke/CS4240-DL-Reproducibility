@@ -17,7 +17,7 @@ class CrossEncoder(nn.Module):
         enc_num_all = np.prod(bottleneck_shape) * self.decoder_input_c
 
         # encoder
-        self.encoder = resnet18(weights=ResNet18_Weights.DEFAULT).eval()
+        self.encoder = resnet18(weights=ResNet18_Weights.DEFAULT)
 
         # shared + specific feature layer
         # channels

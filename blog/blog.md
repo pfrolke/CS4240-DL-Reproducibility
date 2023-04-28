@@ -41,19 +41,19 @@ Gaze estimation is a rapidly growing area of research that involves predicting w
 Accurate gaze estimation can enable more natural and intuitive interfaces for human-computer interaction, such as eye-controlled devices, and can also provide insights into how people perceive and process visual information. Moreover, gaze estimation can be used in autonomous driving to detect driver distractions.
 
 ## Problem statement
-In this work, we are trying to reproduce the results of the paper "Cross-Encoder for Unsupervised Gaze Representation Learning" by Yunjia Sun, et al. The paper introduces an auto-encoder-like framework, called a Cross-Encoder, for unsupervised gaze representation learning. The authors highlight that learning a good representation for gaze is non-trivial due to the fact that features of gaze direction features are always interwined with features of the eye's physical appearance. With that in mind, the authors designed a framework that learns to disentangle the gaze and eye features. In the paper, the performance of the Cross-Encoder is evaluated using experiments on various public datasets and with various values for the hyperparemeters $d_g$ and $d_e$ representing the the dimension of the gaze and eye and the feature respectively. Our tasks was to reproduce one specific number: the angular error on the Columbia Gaze dataset with $d_g=15$ and $d_e=32$ which is listed in Table 1 of the paper.
+In this work, we attempt to reproduce the results of the paper "Cross-Encoder for Unsupervised Gaze Representation Learning" by Yunjia Sun, et al. The paper introduces an auto-encoder-like framework, called a Cross-Encoder, for unsupervised gaze representation learning. The authors highlight that learning a good representation for gaze is non-trivial due to the fact that features of gaze direction features are always intertwined with features of the eye's physical appearance. With that in mind, the authors designed a framework that learns to disentangle the gaze and eye features. In the paper, the performance of the Cross-Encoder is evaluated using experiments on various public datasets and with various values for the hyperparameters $d_g$ and $d_e$ representing the the dimension of the gaze and eye and the feature respectively. Our tasks was to reproduce one specific number: the angular error on the Columbia Gaze dataset with $d_g=15$ and $d_e=32$ which is listed in Table 1 of the paper.
 
 ## Cross Encoder Architecture
 The Cross-Encoder is a modification of a conventional auto-encoder, a feedforward network that tries to reproduce its input at the output layer. To incorporate the goal of separating the gaze and eye features, Cross Encoder processes paired images together. The Cross-Encoder then encodes each image into two features, known as the shared feature and the specific feature. Both images are reconstructed according to their respective features, 
 <!-- Todo -->
 
 ## The Dataset
-The Columbia Gaze dataset consists of 5880 images from 56 subjects. This means 105 images per subject, where each image has different gaze directions and head poses. Additionally, a label for the gaze and landmarks indicating the coordinates of both the left and right eye is available for each image. The label is a 2D vector, specifying the pitch and the yaw.
+The Columbia Gaze dataset consists of 5880 images of 56 subjects. It includes 105 images per subject, where each image has different gaze directions and head poses. Additionally, a label for the gaze and landmarks indicating the coordinates of both the left and right eye is available for each image. The label is a 2D vector, specifying the pitch and the yaw.
 
 ## Method
 
 ### Data processing
-To process the data we followed all the steps discribed in the paper. First, the images are histogram equalised and grey scaled. Both actions are to eliminate changes in appearance due to variations in the light direction, intensity and colour. Then, we used the landmarks to extract the left and the right eye for each image. However, after inspecting the results we noticed something was wrong. To find the issue we plotted the rectangle landmarks on the images and identified a flip in the x-axis of the images. Incorporation of this knowledge, resulted in accurately cropped images. Finally, it was required to have the same width and height for each eye to be able to feed it into the Cross Encoder. To achieve this, we determined the maximum width and height among all the eyes and changed the croppings of each eye accordingly. We ensured that the original cropping was centered relative to the new cropping.
+To process the data we followed all the steps described in the paper. First, the images are histogram equalized and grey-scaled. Both actions are to eliminate changes in appearance due to variations in the light direction, intensity and colour. Then, we used the landmarks to extract the left and the right eye for each image. However, after inspecting the results we noticed something was wrong. To find the issue we plotted the rectangle landmarks on the images and identified a flip in the x-axis of the images. Incorporation of this knowledge, resulted in accurately cropped images. Finally, it was required to have the same width and height for each eye to be able to feed it into the Cross Encoder. To achieve this, we determined the maximum width and height among all the eyes and changed the croppings of each eye accordingly. We ensured that the original cropping was centered relative to the new cropping.
 
 ### Dataset creation
 
@@ -74,6 +74,30 @@ After the cross-encoder is trained, the gaze estimator will be trained. The trai
 * (Evt graph van met loss)
 
 ## Results
+
+### Angular error on Columbia Gaze
+For the assessment of a gaze-estimation technique, typically the angular error is reported. Angular error is a measure of the deviation in degrees between the predicted and target angles of the gaze for a sample.
+
+<!-- TODO std toevoegen -->
+Our trained Cross-Encoder achieves an angular error of $9.3\pm4.2$ on the test set. This is a significant deviation from the $6.4\pm0.1$ angular error reported by the authors. The error reported by the authors is the mean of 5 split cross-validation training, and we only trained and tested the model on one split. However, the small standard deviation reported by the authors makes it unlikely that this discrepancy is caused by an unfortunate split.
+
+However, during inspection of the code shared by the authors we noticed an issue in the training procedure they applied. In the file [2_regress_to_vector.py](https://github.com/sunyunjia96/Cross-Encoder/blob/master/2_regress_to_vector.py) the following code snippet can be found:
+
+```python
+if error < best:
+  torch.save(reg.state_dict(), 'regressor.pth.tar')
+  best = error
+```
+
+It appears as if the model is only saved for the lowest test error. Because of this code we believe that the authors effectively used the test set as a validation set during training. This is bad practice, as it gives an incorrect view of the model's generalization performance. When we evaluated our model in the same way, it achieved an angular error of $7.9\pm3.8$ on the test set. This is considerably better than the original $9.3\pm4.2$, but still far from the reported $6.4\pm0.1$. 
+
+### Cross-Encoder evaluation
+<img src="imgs/model_output.jpg" width=200>
+
+The figure above shows a sample of input images from the test set (left) together with their respective output images when reconstructed by the Cross-Encoder (right). The quality of the output images is an indicator that the encoder-decoder training is successfully mapping an input image to a latent space without losing information about the gaze. Therefore, it likely is not the cause of the performance drop.
+
+- miss voorbeeld van slechte prediction
+- plaatje van decoder output
 
 ## Discussion / Challenges / problems
 
