@@ -94,7 +94,7 @@ The gaze estimator dataset comprises all of the eyes along with their correspond
 
 The cross-encoder is trained on an $80/20$ training/test split on the Columbia dataset. In the original paper they used a 5-fold cross-validation on the Columbia dataset but due to time constraints we only do one split. Training is done for 200 epochs with a learning rate of 0.0001 using the Adam optimizer with default hyperparameters, following the original paper. The batch size is set to 16, each training sample consists of one eye pair and the one gaze pair. To reproduce the angular error of $6.4\pm0.1$ we set the gaze vector dimension to 15 and the eye vector dimension to 32, again the same as the original paper. We use the Google Cloud environment with a NVIDIA Tesla T4 GPU to train our model.
 
-After the cross-encoder is trained, the gaze estimator will be trained. The training will run for 90 epochs with a learning rate of 0.01 on 100 shots using the Adam optimizer with default hyperparameters. Thi
+After the cross-encoder is trained, the gaze estimator will be trained. The training will run for 90 epochs with a learning rate of 0.01 on 100 shots using the Adam optimizer with default hyperparameters. 
 
 * Welke hyper parameters
 * Train test split
