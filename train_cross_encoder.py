@@ -135,7 +135,7 @@ if __name__ == "__main__":
 
             running_test_loss += test_loss.item()
 
-        avg_test_loss = running_test_loss / len(test_loader.dataset) / 4
+        avg_test_loss = running_test_loss / len(test_loader.dataset)
         print(f'LOSS train {avg_loss} valid {avg_test_loss}')
         print('Training vs. Test Loss',
               {'Training': avg_loss, 'Test': avg_test_loss, 'Epoch': epoch + 1})
