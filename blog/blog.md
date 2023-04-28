@@ -85,7 +85,7 @@ Some of the challenges we encountered were for one that the available code was, 
 
 ## Project approach + division of work
 At the beginning we made a project plan for the entire course of the project. We decided that we would try to pair program as much as possible during the project since it was hard to divide the task of programming. The 
-![Project plan](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/planning-2.jpg?raw=true)
+![Project plan](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/planning-2.jpg?raw=true)
 
 - Planning die we de eerste week hadden gemaakt?
 - Ik zag in een van de voorbeelden een tabel met taken en wie er aan hadden gewerkt. Dat kunnen we ook doen. 
