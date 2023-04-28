@@ -44,10 +44,10 @@ Accurate gaze estimation can enable more natural and intuitive interfaces for hu
 In this work, we attempt to reproduce the results of the paper "Cross-Encoder for Unsupervised Gaze Representation Learning" by Yunjia Sun, et al. The paper introduces an auto-encoder-like framework, called a Cross-Encoder, for unsupervised gaze representation learning. The authors highlight that learning a good representation for gaze is non-trivial due to the fact that features of gaze direction features are always intertwined with features of the eye's physical appearance. With that in mind, the authors designed a framework that learns to disentangle the gaze and eye features. In the paper, the performance of the Cross-Encoder is evaluated using experiments on various public datasets and with various values for the hyperparameters $d_g$ and $d_e$ representing the the dimension of the gaze and eye and the feature respectively. Our tasks was to reproduce one specific number: the angular error on the Columbia Gaze dataset with $d_g=15$ and $d_e=32$ which is listed in Table 1 of the paper.
 
 ## Cross Encoder Architecture
-The Cross-Encoder is a modification of an auto-encoder. A conventional autoencoder is a feedforward network that tries to reproduce its input at the output layer. It consists of an encoder which encodes the input to a vector-like embedding and a decoder which tries to reconstruct the image based on the embedding. To incorporate the goal of separating the gaze and eye features, Cross Encoder splits the embedding into two parts, the so called shared feature and specific feature. Furtermore, the input consists of pairs of images instead of just one image. After being encoded to a specific and shared feature, the two images are reconstructed according to its specific feature and the other's shared feature.
+The Cross-Encoder is a modification of an auto-encoder. A conventional auto-encoder is a feedforward network that tries to reproduce its input at the output layer. It consists of an encoder which encodes the input to a low-dimensional embedding and a decoder which tries to reconstruct the image based on the embedding. To incorporate the goal of separating the gaze and eye features, Cross Encoder splits the embedding into two parts, the so called shared feature and specific feature. Furthermore, the input consists of pairs of images instead of just one image. After being encoded to a specific and shared feature, the two images are reconstructed according to its specific feature and the other's shared feature.
 
 ### Input
-The Cross-Eencoder is trained using two types of image pairs. An eye similar pair is a pair that has the same eye but a different gaze. A gaze similar pair, is a pair of images with the same gaze but with different eyes. When the eye similar pair is fed into the network, the shared feature will be the eye feature and the specific feature will be the gaze feature. So these images will be reconstructed based on its gaze feature and the other's eye feature. For the gaze similar pair this is the other way around. 
+The Cross-Encoder is trained using two types of image pairs. An eye similar pair is a pair that has the same eye but a different gaze. A gaze similar pair, is a pair of images with the same gaze but with different eyes. When the eye similar pair is fed into the network, the shared feature will be the eye feature and the specific feature will be the gaze feature. So these images will be reconstructed based on its gaze feature and the other's eye feature. For the gaze similar pair this is the other way around. 
 The paper provides Figure 1 to give an overview of the architecture.
 
 <center>
@@ -68,7 +68,7 @@ L=\sum||I_i-\hat{I_i}||_1 + ||I_j -\hat{I_j}||_1 + \alpha R
 \end{aligned}
 $$
 
-where $(I_i, I_j)$ and $(\hat{I_i}, \hat{I_j})$ denote the training images, and the reconstructions respectively. The first two terms are there to compare the reconstructions with the inpu and the $R = ||(\hat{I_i} - \hat{I_i}) - (\hat{I_j} - \hat{I_j})||_1$ is there to regulize the differences between the losses of the two training images. The parameters of the encoder and decoder are updated using two types of input pairs simultaneously. Therefore the full loss becomes
+where $(I_i, I_j)$ and $(\hat{I_i}, \hat{I_j})$ denote the training images, and the reconstructions respectively. The first two terms are there to compare the reconstructions with the input and the $R = ||(\hat{I_i} - \hat{I_i}) - (\hat{I_j} - \hat{I_j})||_1$ is there to regularize the differences between the losses of the two training images. The parameters of the encoder and decoder are updated using two types of input pairs simultaneously. Therefore the full loss becomes
 
 $$
 \begin{aligned}
@@ -83,7 +83,7 @@ The Columbia Gaze dataset consists of 5880 images of 56 subjects. It includes 10
 ## Method
 
 ### Data processing
-To process the data we followed all the steps described in the paper. First, the images are histogram equalized and grey-scaled. Both actions are to eliminate changes in appearance due to variations in the light direction, intensity and colour. Then, we used the landmarks to extract the left and the right eye for each image. However, after inspecting the results we noticed something was wrong. To find the issue we plotted the rectangle landmarks on the images and identified a flip in the x-axis of the images. Incorporation of this knowledge, resulted in accurately cropped images. Finally, it was required to have the same width and height for each eye to be able to feed it into the Cross Encoder. To achieve this, we determined the maximum width and height among all the eyes and changed the croppings of each eye accordingly. We ensured that the original cropping was centered relative to the new cropping.
+To process the data we followed all the steps described in the paper. First, the images are histogram equalized and grey-scaled. Both actions are to eliminate changes in appearance due to variations in the light direction, intensity and color. Then, we used the landmarks to extract the left and the right eye for each image. However, after inspecting the results we noticed something was wrong. To find the issue we plotted the rectangle landmarks on the images and identified a flip in the x-axis of the images. Incorporation of this knowledge, resulted in accurately cropped images. Finally, it was required to have the same width and height for each eye to be able to feed it into the Cross Encoder. To achieve this, we determined the maximum width and height among all the eyes and changed the croppings of each eye accordingly. We ensured that the original cropping was centered relative to the new cropping.
 
 ### Dataset creation
 
@@ -96,9 +96,9 @@ To process the data we followed all the steps described in the paper. First, the
 
 ### Training procedure
 
-The cross-encoder is trained on an $80/20$ training/test split on the Columbia dataset. In the original paper they used a 5-fold cross-validation on the Columbia dataset but due to time constraints we only do one cross-validation. Training is done for 200 epochs with a learning rate of 0.0001 using the Adam optimizer with default hyperparameters, the same as the original paper. The batch size is set to 16 where half of the batch are eye pairs and the other half are gaze pairs. To reproduce the angular error of $6.4\pm0.1$ we set the gaze vector dimension to 15 and the eye vector dimension to 32, again the same as the original paper. We use the Google Cloud environment with a NVIDIA Tesla T4 GPU to train our model.
+The cross-encoder is trained on an $80/20$ training/test split on the Columbia dataset. In the original paper they used a 5-fold cross-validation on the Columbia dataset but due to time constraints we only do one split. Training is done for 200 epochs with a learning rate of 0.0001 using the Adam optimizer with default hyperparameters, following the original paper. The batch size is set to 16, each training sample consists of one eye pair and the one gaze pair. To reproduce the angular error of $6.4\pm0.1$ we set the gaze vector dimension to 15 and the eye vector dimension to 32, again the same as the original paper. We use the Google Cloud environment with a NVIDIA Tesla T4 GPU to train our model.
 
-After the cross-encoder is trained the gaze estimator will be trained for 30 epochs with a learning rate of 0.01 on 100 shots using the Adam optimizer with default hyperparameters.
+Following the cross-encoder training, the gaze estimator is trained for 90 epochs with a learning rate of 0.001 on 100 shots using the Adam optimizer with default hyperparameters.
 
 * Welke hyper parameters
 * Train test split
@@ -147,8 +147,6 @@ At the beginning we made a project plan for the entire course of the project. We
 We ended up having weekly meetings with our supervisor Lingyu. During these meetings we discussed our progress and asked for help when things were unclear. Unfortunately, we ended up meeting Alex, our TA, only once. This was mostly due to miscommunication, as well as that our group contact with Lingyu went through Teams. Alex was in this Teams channel but never replied.
 
 During the project we ended up separating the programming tasks a bit more. Gijs mainly worked on implementing the loading and processing the data as well as helping to debug the cross encoder and loss implementations.
-
-When we began writing the report we made a division on who would write which parts of the project. 
 
 * Planning die we de eerste week hadden gemaakt?
 * Ik zag in een van de voorbeelden een tabel met taken en wie er aan hadden gewerkt. Dat kunnen we ook doen.
