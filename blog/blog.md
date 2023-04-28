@@ -134,9 +134,6 @@ When looking through the original code we found that the output of the encoder w
 One other explanation why our results are not the same is that we did not perform a 5-fold cross validation. The Columbia dataset is a relatively small dataset, thus using cross-validation one could better utilize the short comings of using a small dataset.
 
 
-## Conclusion
-
-
 ## Project approach + division of work
 
 At the beginning we made a project plan for the entire course of the project. We decided that we would try to pair program as much as possible during the project since it was hard to divide the task of programming. The planning can be found in the image below.
