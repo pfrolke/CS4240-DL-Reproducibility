@@ -1,11 +1,5 @@
-from datetime import datetime
-import torch
 import torch.nn as nn
-import torch.optim as optim
-from tqdm import tqdm
 from model.densenet import DenseNetBlock, DenseNetTransitionUp
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class DenseNetDecoder(nn.Module):
@@ -71,7 +65,7 @@ class DenseNetDecoderLastLayers(nn.Module):
         # Second deconv
         c_in = 4 * growth_rate + skip_connection_growth
         self.norm2 = normalization_fn(
-            c_in, track_running_stats=False).to(device)
+            c_in, track_running_stats=False)
         self.act = activation_fn(inplace=True)
         self.conv2 = nn.ConvTranspose2d(c_in, 2 * growth_rate, bias=False,
                                         kernel_size=1, stride=1, padding=0,
@@ -82,7 +76,7 @@ class DenseNetDecoderLastLayers(nn.Module):
         c_in = 2 * growth_rate
         c_out = 1
         self.norm3 = normalization_fn(
-            c_in, track_running_stats=False).to(device)
+            c_in, track_running_stats=False)
         self.conv3 = nn.Conv2d(c_in, c_out, bias=False,
                                kernel_size=1, stride=1, padding=0)
         nn.init.kaiming_normal_(self.conv3.weight.data)

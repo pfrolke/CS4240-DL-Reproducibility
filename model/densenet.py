@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
 
 class DenseNetBlock(nn.Module):
 
@@ -30,10 +28,10 @@ class DenseNetCompositeLayer(nn.Module):
 
     def __init__(self, c_in, c_out, kernel_size, activation_fn, normalization_fn):
         super(DenseNetCompositeLayer, self).__init__()
-        self.norm = normalization_fn(c_in).to(device)
+        self.norm = normalization_fn(c_in)
         self.act = activation_fn(inplace=True)
         self.conv = nn.ConvTranspose2d(c_in, c_out, kernel_size=kernel_size, stride=1,
-                                       padding=1, bias=False).to(device)
+                                       padding=1, bias=False)
         nn.init.kaiming_normal_(self.conv.weight.data)
         self.c_now = c_out
 
@@ -50,11 +48,11 @@ class DenseNetTransitionUp(nn.Module):
         super(DenseNetTransitionUp, self).__init__()
         c_out = c_in
         self.norm = normalization_fn(
-            c_in, track_running_stats=False).to(device)
+            c_in, track_running_stats=False)
         self.act = activation_fn(inplace=True)
         self.conv = nn.ConvTranspose2d(c_in, c_out, kernel_size=3,
                                        stride=2, padding=1, output_padding=1,
-                                       bias=False).to(device)
+                                       bias=False)
         nn.init.kaiming_normal_(self.conv.weight.data)
         self.c_now = c_out
 

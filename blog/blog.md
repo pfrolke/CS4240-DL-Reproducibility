@@ -44,8 +44,39 @@ Accurate gaze estimation can enable more natural and intuitive interfaces for hu
 In this work, we attempt to reproduce the results of the paper "Cross-Encoder for Unsupervised Gaze Representation Learning" by Yunjia Sun, et al. The paper introduces an auto-encoder-like framework, called a Cross-Encoder, for unsupervised gaze representation learning. The authors highlight that learning a good representation for gaze is non-trivial due to the fact that features of gaze direction features are always intertwined with features of the eye's physical appearance. With that in mind, the authors designed a framework that learns to disentangle the gaze and eye features. In the paper, the performance of the Cross-Encoder is evaluated using experiments on various public datasets and with various values for the hyperparameters $d_g$ and $d_e$ representing the the dimension of the gaze and eye and the feature respectively. Our tasks was to reproduce one specific number: the angular error on the Columbia Gaze dataset with $d_g=15$ and $d_e=32$ which is listed in Table 1 of the paper.
 
 ## Cross Encoder Architecture
-The Cross-Encoder is a modification of a conventional auto-encoder, a feedforward network that tries to reproduce its input at the output layer. To incorporate the goal of separating the gaze and eye features, Cross Encoder processes paired images together. The Cross-Encoder then encodes each image into two features, known as the shared feature and the specific feature. Both images are reconstructed according to their respective features, 
-<!-- Todo -->
+The Cross-Encoder is a modification of an auto-encoder. A conventional auto-encoder is a feedforward network that tries to reproduce its input at the output layer. It consists of an encoder which encodes the input to a low-dimensional embedding and a decoder which tries to reconstruct the image based on the embedding. To incorporate the goal of separating the gaze and eye features, Cross Encoder splits the embedding into two parts, the so called shared feature and specific feature. Furthermore, the input consists of pairs of images instead of just one image. After being encoded to a specific and shared feature, the two images are reconstructed according to its specific feature and the other's shared feature.
+
+### Input
+The Cross-Encoder is trained using two types of image pairs. An eye similar pair is a pair that has the same eye but a different gaze. A gaze similar pair, is a pair of images with the same gaze but with different eyes. When the eye similar pair is fed into the network, the shared feature will be the eye feature and the specific feature will be the gaze feature. So these images will be reconstructed based on its gaze feature and the other's eye feature. For the gaze similar pair this is the other way around. 
+The paper provides Figure 1 to give an overview of the architecture.
+
+<center>
+<img src="[architecture.png](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/architecture.png?raw=true)" style="width:70%" />
+</center>
+<p align="center">
+  <em>Figure 1: the achitecture of the Cross Encoder as presented in the paper. Here e<sub>J</sub> is the eye feature and g<sub>J</sub> the gaze feature.</em>
+</p>
+
+### Loss Function
+For one image pair the loss is determined by the following function.
+
+$$
+\begin{aligned}
+L=\sum||I_i-\hat{I_i}||_1 + ||I_j -\hat{I_j}||_1 + \alpha R
+\end{aligned}
+$$
+
+where $(I_i, I_j)$ and $(\hat{I_i}, \hat{I_j})$ denote the training images, and the reconstructions respectively. The first two terms are there to compare the reconstructions with the input and the $R = ||(\hat{I_i} - \hat{I_i}) - (\hat{I_j} - \hat{I_j})||_1$ is there to regularize the differences between the losses of the two training images. The parameters of the encoder and decoder are updated using two types of input pairs simultaneously. Therefore the full loss becomes
+
+$$
+\begin{aligned}
+L_g + \beta L_e
+\end{aligned}
+$$
+where $L_g$ and $L_e$ are the loss for the gaze and eye pair balanced by the hyper parameter $\beta$.
+
+### Gaze estimator
+To perform the actual gaze estimation task, the Cross Encoders' encoder component is extracted and extended with two additional linear layers. This network is then trained once more and this time in a supervised manner.
 
 ## The Dataset
 The Columbia Gaze dataset consists of 5880 images of 56 subjects. It includes 105 images per subject, where each image has different gaze directions and head poses. Additionally, a label for the gaze and landmarks indicating the coordinates of both the left and right eye is available for each image. The label is a 2D vector, specifying the pitch and the yaw.
@@ -53,19 +84,15 @@ The Columbia Gaze dataset consists of 5880 images of 56 subjects. It includes 10
 ## Method
 
 ### Data processing
-To process the data we followed all the steps described in the paper. First, the images are histogram equalized and grey-scaled. Both actions are to eliminate changes in appearance due to variations in the light direction, intensity and colour. Then, we used the landmarks to extract the left and the right eye for each image. However, after inspecting the results we noticed something was wrong. To find the issue we plotted the rectangle landmarks on the images and identified a flip in the x-axis of the images. Incorporation of this knowledge, resulted in accurately cropped images. Finally, it was required to have the same width and height for each eye to be able to feed it into the Cross Encoder. To achieve this, we determined the maximum width and height among all the eyes and changed the croppings of each eye accordingly. We ensured that the original cropping was centered relative to the new cropping.
+To process the data we followed all the steps described in the paper. First, the images are histogram equalized and grey-scaled. Both actions are to eliminate changes in appearance due to variations in the light direction, intensity and color. Then, we used the landmarks to extract the left and the right eye for each image. However, after inspecting the results we noticed something was wrong. To find the issue we plotted the rectangle landmarks on the images and identified a flip in the x-axis of the images. Incorporation of this knowledge, resulted in accurately cropped images. Finally, it was required to have the same width and height for each eye to be able to feed it into the Cross Encoder. To achieve this, we determined the maximum width and height among all the eyes and changed the croppings of each eye accordingly. We ensured that the original cropping was centered relative to the new cropping.
 
 ### Dataset creation
-
-### Approach
-
-- Eerst supervised
-- Toen cross encoder
-- Toen trainen
+After processing the data we created two datasets. One for training the Cross Encoder and one to train the gaze estimator. In the Cross Encoder dataset, one sample contains one eye pair and one gaze pair which boils down to a tuple of length four. For each of the participants in the dataset we created 105 gaze and eye pairs. To form the gaze pairs, we took the left and right eye of the same image, just like the authors did. The eye pairs were constructed by randomly combining two left or two right eyes from different images but from the same person.
+The gaze estimator dataset comprises all of the eyes along with their corresponding labels.
 
 ### Training procedure
 
-The cross-encoder is trained on an $80/20$ training/test split on the Columbia dataset. In the original paper they used a 5-fold cross-validation on the Columbia dataset but due to time constraints we only do one cross-validation. Training is done for 200 epochs with a learning rate of 0.0001 using the Adam optimizer with default hyperparameters, the same as the original paper. The batch size is set to 16 where half of the batch are eye pairs and the other half are gaze pairs. To reproduce the angular error of $6.4\pm0.1$ we set the gaze vector dimension to 15 and the eye vector dimension to 32, again the same as the original paper. We use the Google Cloud environment with a NVIDIA Tesla T4 GPU to train our model.
+The cross-encoder is trained on an $80/20$ training/test split on the Columbia dataset. In the original paper they used a 5-fold cross-validation on the Columbia dataset but due to time constraints we only do one split. Training is done for 200 epochs with a learning rate of 0.0001 using the Adam optimizer with default hyperparameters, following the original paper. The batch size is set to 16, each training sample consists of one eye pair and the one gaze pair. To reproduce the angular error of $6.4\pm0.1$ we set the gaze vector dimension to 15 and the eye vector dimension to 32, again the same as the original paper. We use the Google Cloud environment with a NVIDIA Tesla T4 GPU to train our model.
 
 After the cross-encoder is trained, the gaze estimator will be trained. The training will run for 90 epochs with a learning rate of 0.01 on 100 shots using the Adam optimizer with default hyperparameters. Thi
 
@@ -78,10 +105,9 @@ After the cross-encoder is trained, the gaze estimator will be trained. The trai
 ### Angular error on Columbia Gaze
 For the assessment of a gaze-estimation technique, typically the angular error is reported. Angular error is a measure of the deviation in degrees between the predicted and target angles of the gaze for a sample.
 
-<!-- TODO std toevoegen -->
 Our trained Cross-Encoder achieves an angular error of $9.3\pm4.2$ on the test set. This is a significant deviation from the $6.4\pm0.1$ angular error reported by the authors. The error reported by the authors is the mean of 5 split cross-validation training, and we only trained and tested the model on one split. However, the small standard deviation reported by the authors makes it unlikely that this discrepancy is caused by an unfortunate split.
 
-However, during inspection of the code shared by the authors we noticed an issue in the training procedure they applied. In the file [2_regress_to_vector.py](https://github.com/sunyunjia96/Cross-Encoder/blob/master/2_regress_to_vector.py) the following code snippet can be found:
+During inspection of the code shared by the authors we noticed an issue in the training procedure they applied. In the file [2_regress_to_vector.py](https://github.com/sunyunjia96/Cross-Encoder/blob/master/2_regress_to_vector.py) the following code snippet can be found:
 
 ```python
 if error < best:
@@ -89,15 +115,15 @@ if error < best:
   best = error
 ```
 
-It appears as if the model is only saved for the lowest test error. Because of this code we believe that the authors effectively used the test set as a validation set during training. This is bad practice, as it gives an incorrect view of the model's generalization performance. When we evaluated our model in the same way, it achieved an angular error of $7.9\pm3.8$ on the test set. This is considerably better than the original $9.3\pm4.2$, but still far from the reported $6.4\pm0.1$. 
+It appears as if the model is only saved for the lowest test error. Because of this code we believe that the authors effectively used the test set as a validation set during training. This is bad practice, as it results in an incorrect view of the model's generalization performance. When we evaluated our model in the same way, it achieved an angular error of $7.9\pm3.8$ on the test set. This is considerably better than the original $9.3\pm4.2$, but still far from the reported $6.4\pm0.1$. 
 
 ### Cross-Encoder evaluation
-<img src="imgs/model_output.jpg" width=200>
+<img src="https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/planning-2.jpg/model_output.png?raw=true" width=200>
 
 The figure above shows a sample of input images from the test set (left) together with their respective output images when reconstructed by the Cross-Encoder (right). The quality of the output images is an indicator that the encoder-decoder training is successfully mapping an input image to a latent space without losing information about the gaze. Therefore, it likely is not the cause of the performance drop.
 
-* miss voorbeeld van slechte prediction
-* plaatje van decoder output
+- miss voorbeeld van slechte prediction
+- plaatje van decoder output
 
 ## Discussion / Challenges / problems
 
@@ -115,7 +141,7 @@ One other explanation why our results are not the same is that we did not perfor
 
 At the beginning we made a project plan for the entire course of the project. We decided that we would try to pair program as much as possible during the project since it was hard to divide the task of programming. The planning can be found in the image below.
 
-![Project plan](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/planning-2.jpg?raw=true)
+![Project plan](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/blog/imgs/planning-2.jpg?raw=true)
 
 We ended up having weekly meetings with our supervisor Lingyu. During these meetings we discussed our progress and asked for help when things were unclear. Unfortunately, we ended up meeting Alex, our TA, only once. This was mostly due to miscommunication, as well as that our group contact with Lingyu went through Teams. Alex was in this Teams channel but never replied.
 
