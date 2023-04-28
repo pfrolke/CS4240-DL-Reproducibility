@@ -67,7 +67,7 @@ To process the data we followed all the steps discribed in the paper. First, the
 
 The cross-encoder is trained on an $80/20$ training/test split on the Columbia dataset. In the original paper they used a 5-fold cross-validation on the Columbia dataset but due to time constraints we only do one cross-validation. Training is done for 200 epochs with a learning rate of 0.0001 using the Adam optimizer with default hyperparameters, the same as the original paper. The batch size is set to 16 where half of the batch are eye pairs and the other half are gaze pairs. To reproduce the angular error of $6.4\pm0.1$ we set the gaze vector dimension to 15 and the eye vector dimension to 32, again the same as the original paper. We use the Google Cloud environment with a NVIDIA Tesla T4 GPU to train our model.
 
-After the cross-encoder is trained the gaze estimator will be trained for 30 epochs with a learning rate of 0.01 on 100 shots using the Adam optimizer with default hyperparameters.
+After the cross-encoder is trained, the gaze estimator will be trained. The training will run for 30 epochs with a learning rate of 0.01 on 100 shots using the Adam optimizer with default hyperparameters. Thi
 
 * Welke hyper parameters
 * Train test split
@@ -77,7 +77,7 @@ After the cross-encoder is trained the gaze estimator will be trained for 30 epo
 
 ## Discussion / Challenges / problems
 
-One significant challenge was that the available code was, in our opinion, convoluted and badly annotated. This made it hard for us to interpret and reproduce the paper, especially since we are not familiar with how Deep Learning or more specifically Gaze estimation projects are structured.
+One significant challenge was that the available code was, in our opinion, convoluted and badly annotated. This made it hard for us to interpret and reproduce the paper, especially since we are not familiar with how Deep Learning or more specifically Gaze estimation projects are structured. With the help of our supervisor did the code become understandable, even though he had his own remarks about the original code.
 
 When looking through the original code we found that the output of the encoder was not the combined size of the gaze and eye feature vector. They multiply the gaze feature by three, which thus results in an unfair representation of gaze feature. In the paper they do not mention this and it is not clear from the code why this is done. Thus for our own implementation we decided not to multiply the gaze dimension by three. This might result our worse performance or explain why their results were so good.
 
