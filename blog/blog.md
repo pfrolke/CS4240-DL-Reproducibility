@@ -109,10 +109,9 @@ After the cross-encoder is trained the gaze estimator will be trained for 30 epo
 ### Angular error on Columbia Gaze
 For the assessment of a gaze-estimation technique, typically the angular error is reported. Angular error is a measure of the deviation in degrees between the predicted and target angles of the gaze for a sample.
 
-<!-- TODO std toevoegen -->
 Our trained Cross-Encoder achieves an angular error of $9.3\pm4.2$ on the test set. This is a significant deviation from the $6.4\pm0.1$ angular error reported by the authors. The error reported by the authors is the mean of 5 split cross-validation training, and we only trained and tested the model on one split. However, the small standard deviation reported by the authors makes it unlikely that this discrepancy is caused by an unfortunate split.
 
-However, during inspection of the code shared by the authors we noticed an issue in the training procedure they applied. In the file [2_regress_to_vector.py](https://github.com/sunyunjia96/Cross-Encoder/blob/master/2_regress_to_vector.py) the following code snippet can be found:
+During inspection of the code shared by the authors we noticed an issue in the training procedure they applied. In the file [2_regress_to_vector.py](https://github.com/sunyunjia96/Cross-Encoder/blob/master/2_regress_to_vector.py) the following code snippet can be found:
 
 ```python
 if error < best:
@@ -120,15 +119,12 @@ if error < best:
   best = error
 ```
 
-It appears as if the model is only saved for the lowest test error. Because of this code we believe that the authors effectively used the test set as a validation set during training. This is bad practice, as it gives an incorrect view of the model's generalization performance. When we evaluated our model in the same way, it achieved an angular error of $7.9\pm3.8$ on the test set. This is considerably better than the original $9.3\pm4.2$, but still far from the reported $6.4\pm0.1$. 
+It appears as if the model is only saved for the lowest test error. Because of this code we believe that the authors effectively used the test set as a validation set during training. This is bad practice, as it results in an incorrect view of the model's generalization performance. When we evaluated our model in the same way, it achieved an angular error of $7.9\pm3.8$ on the test set. This is considerably better than the original $9.3\pm4.2$, but still far from the reported $6.4\pm0.1$. 
 
 ### Cross-Encoder evaluation
-<img src="imgs/model_output.jpg" width=200>
+<img src="https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/imgs/planning-2.jpg/model_output.png?raw=true" width=200>
 
 The figure above shows a sample of input images from the test set (left) together with their respective output images when reconstructed by the Cross-Encoder (right). The quality of the output images is an indicator that the encoder-decoder training is successfully mapping an input image to a latent space without losing information about the gaze. Therefore, it likely is not the cause of the performance drop.
-
-- miss voorbeeld van slechte prediction
-- plaatje van decoder output
 
 ## Discussion / Challenges / problems
 
