@@ -69,24 +69,19 @@ The cross-encoder is trained on an $80/20$ training/test split on the Columbia d
 
 After the cross-encoder is trained the gaze estimator will be trained for 30 epochs with a learning rate of 0.01 on 100 shots using the Adam optimizer with default hyperparameters.
 
-* Welke hyper parameters
-* Train test split
-* (Evt graph van met loss)
+
+- Welke hyper parameters
+- Train test split
+- (Evt graph van met loss)
 
 ## Results
 
 ## Discussion / Challenges / problems
-
-Some of the challenges we encountered were for one that the available code was, in our opinion, convoluted at badly annotated. This made it hard for us to interpret and reproduce the paper, especially since we are not familiar with 
-
-
+Some of the challenges we encountered were for one that the available code was, in our opinion, convoluted at badly annotated. 
 
 ## Conclusion
 
 ## Project approach + division of work
-At the beginning we made a project plan for the entire course of the project. We decided that we would try to pair program as much as possible during the project since it was hard to divide the task of programming. The 
-![Project plan](https://github.com/pfrolke/CS4240-DL-Reproducibility/blob/main/planning-2.jpg?raw=true)
-
 - Planning die we de eerste week hadden gemaakt?
 - Ik zag in een van de voorbeelden een tabel met taken en wie er aan hadden gewerkt. Dat kunnen we ook doen. 
 
