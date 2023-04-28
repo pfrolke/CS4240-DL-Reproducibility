@@ -122,6 +122,7 @@ It appears as if the model is only saved for the lowest test error. Because of t
   <em>Figure 2: a sample of input images (left) and output images (right) which reconstructed by the Cross-Encoder </em>
 </p>
 
+
 The figure above shows a sample of input images from the test set (left) together with their respective output images when reconstructed by the Cross-Encoder (right). The quality of the output images is an indicator that the encoder-decoder training is successfully mapping an input image to a latent space without losing information about the gaze. Therefore, it likely is not the cause of the performance drop.
 
 ## Discussion / Challenges / problems
@@ -152,6 +153,3 @@ We ended up having weekly meetings with our supervisor Lingyu. During these meet
 During the project we found out that it was possible to separate the programming tasks a bit more. Gijs mainly worked on implementing the loading and processing the data as well as helping to debug the cross encoder and loss implementations.
 
 When we began writing the report we made a division on who would write which parts of the project. Everyone wrote some sections individually and we then later proofread each others sections to make sure there were no mistakes and that it was a coherent blog.
-
-* Planning die we de eerste week hadden gemaakt?
-* Ik zag in een van de voorbeelden een tabel met taken en wie er aan hadden gewerkt. Dat kunnen we ook doen.
